@@ -1,0 +1,7 @@
+TARGET = 'HeartRateApp'
+SOURCES  = ['HeartRateApp.cpp', 'HeartShape.cpp', 'PParams.cpp']
+DEBUG = 1
+
+SConscript('../../../scons/SConscript',
+	exports = ['TARGET', 'SOURCES', 'DEBUG'])
+
