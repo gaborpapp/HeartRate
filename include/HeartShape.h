@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "cinder/Color.h"
 #include "cinder/Vector.h"
 #include "cinder/app/App.h"
@@ -37,5 +39,7 @@ class HeartShape
 		float mOutlineWidth;
 
 		ci::Vec2i mAreaSize;
+
+		std::vector< ci::Vec2f > mPoints;
 };
 

@@ -47,7 +47,18 @@ class HeartRateApp : public AppBasic
 		HeartShape mHeart;
 
 		params::PInterfaceGl mParams;
+		// heart shape
 		ColorA mColorActiveOutline;
+		ColorA mColorInactiveOutline;
+		ColorA mColorInactive;
+		ColorA mColorActive;
+		float mOutlineWidth;
+		float mMinSize;
+		float mMaxSize;
+		int mNumSegments;
+
+		// debug
+		float mFps;
 };
 
 void HeartRateApp::prepareSettings( Settings *settings )
@@ -66,8 +77,22 @@ void HeartRateApp::setup()
 	mParams = params::PInterfaceGl( "Parameters", Vec2i( 300, 600 ) );
 	mParams.addPersistentSizeAndPosition();
 
+	// heart shape
 	mParams.addText( "Heart shape" );
-    mParams.addPersistentParam( "Outline active color", &mColorActiveOutline, ColorA::hex( 0xff808080 ) );
+	mParams.addPersistentParam( "Active color", &mColorActive, ColorA::hexA( 0xffab0706 ) );
+	mParams.addPersistentParam( "Inactive color", &mColorInactive, ColorA::hexA( 0xff862c2c ) );
+	mParams.addPersistentParam( "Outline active color", &mColorActiveOutline, ColorA::hexA( 0xfff40100 ) );
+	mParams.addPersistentParam( "Outline inactive color", &mColorInactiveOutline, ColorA::hexA( 0xff726265 ) );
+	mParams.addPersistentParam( "Outline width", &mOutlineWidth, 2.0, "min=0 max=15 step=.2" );
+	mParams.addPersistentParam( "Minimum size", &mMinSize, 1.0, "min=0 max=3.5 step=.01" );
+	mParams.addPersistentParam( "Maximum size", &mMaxSize, 2.5, "min=0 max=3.5 step=.01" );
+	mParams.addPersistentParam( "Segment number", &mNumSegments, 100, "min=4 max=400" );
+	// heart behaviour
+
+	// debug
+	mParams.addSeparator();
+	mFps = 0;
+	mParams.addParam( "Fps", &mFps, "", false );
 }
 
 void HeartRateApp::shutdown()
@@ -90,7 +115,16 @@ void HeartRateApp::keyDown( KeyEvent event )
 
 void HeartRateApp::update()
 {
+	mHeart.setColorActive( mColorActive );
+	mHeart.setColorInactive( mColorInactive );
 	mHeart.setColorActiveOutline( mColorActiveOutline );
+	mHeart.setColorInactiveOutline( mColorInactiveOutline );
+	mHeart.setOutlineWidth( mOutlineWidth );
+	mHeart.setMinSize( mMinSize );
+	mHeart.setMaxSize( mMaxSize );
+	mHeart.setNumSegments( mNumSegments );
+
+	mFps = getAverageFps();
 }
 
 void HeartRateApp::draw()

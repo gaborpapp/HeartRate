@@ -5,12 +5,13 @@
 #include "HeartShape.h"
 
 using namespace ci;
+using namespace std;
 
 HeartShape::HeartShape() :
-	mColorInactive( Color::hex( 0x80800000 ) ),
-	mColorActive( ColorA::hex( 0xffff0000 ) ),
-	mColorInactiveOutline( Color::hex( 0x80808080 ) ),
-	mColorActiveOutline( ColorA::hex( 0xff808080 ) ),
+	mColorInactive( ColorA::hexA( 0xff862c2c ) ),
+	mColorActive( ColorA::hexA( 0xffab0706 ) ),
+	mColorInactiveOutline( ColorA::hexA( 0xff726265 ) ),
+	mColorActiveOutline( ColorA::hexA( 0xfff40100 ) ),
 	mMinSize( 1.f ),
 	mMaxSize( 2.5f ),
 	mNumSegments( 100 ),
@@ -35,14 +36,14 @@ void HeartShape::draw()
 	float distV = math<float>::abs(
 			math<float>::sin( app::getElapsedSeconds() * .5) );
 
-	glLineWidth( mOutlineWidth );
-
-	gl::color( mColorActiveOutline );
-
-	gl::begin( GL_LINE_LOOP );
+	if ( mPoints.size() != mNumSegments )
+	{
+		mPoints.resize( mNumSegments );
+	}
+	unsigned idx = 0;
 
 	// right
-	for ( float t = 0; t < M_PI; t += 2 * M_PI / mNumSegments )
+	for ( float t = 0; t < M_PI; t += 2 * M_PI / mNumSegments, ++idx )
 	{
 		st = math<float>::sin( t );
 		x = 16 * st * st * st;
@@ -52,11 +53,12 @@ void HeartShape::draw()
 			math<float>::cos( 4 * t );
 
 		v = Vec2f( x, y ) * minSize + center;
-		gl::vertex( v );
+
+		mPoints[ idx ] = v;
 	}
 
 	// left
-	for ( float t = M_PI; t < M_PI * 2; t += 2 * M_PI / mNumSegments )
+	for ( float t = M_PI; t < M_PI * 2; t += 2 * M_PI / mNumSegments, ++idx )
 	{
 		st = math<float>::sin( t );
 		x = 16 * st * st * st;
@@ -70,9 +72,24 @@ void HeartShape::draw()
 
 		float sc = lerp( minSize, maxSize, distort );
 		v = Vec2f( x, y ) * sc + center;
-		gl::vertex( v );
+
+		mPoints[ idx ] = v;
 	}
-	gl::end();
+
+	glLineWidth( mOutlineWidth );
+	gl::enableAlphaBlending();
+
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glVertexPointer( 2, GL_FLOAT, 0, &( mPoints[ 0 ] ) );
+
+	gl::color( mColorActive );
+	glDrawArrays( GL_POLYGON, 0, mPoints.size() );
+
+	gl::color( mColorActiveOutline );
+	glDrawArrays( GL_LINE_LOOP, 0, mPoints.size() );
+
+	glDisableClientState( GL_VERTEX_ARRAY );
+	gl::disableAlphaBlending();
 	glLineWidth( 1.f );
 }
 
