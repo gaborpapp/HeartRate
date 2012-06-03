@@ -1,7 +1,8 @@
 TARGET = 'HeartRateApp'
 SOURCES  = ['HeartRateApp.cpp', 'HeartShape.cpp', 'PParams.cpp']
+ASSETS = ['params.xml']
 DEBUG = 1
 
 SConscript('../../../scons/SConscript',
-	exports = ['TARGET', 'SOURCES', 'DEBUG'])
+	exports = ['TARGET', 'SOURCES', 'DEBUG', 'ASSETS'])
 
