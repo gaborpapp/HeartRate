@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2012 Gabor Papp
+ Copyright (C) 2012 Gabor Papp, Gabor Botond Barna
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -72,6 +72,17 @@ void HeartRateApp::setup()
 
 	// params
 	fs::path paramsXml( getAssetPath( "params.xml" ));
+	if ( paramsXml.empty() )
+	{
+#if defined( CINDER_MAC )
+		fs::path assetPath( getResourcePath() / "assets" );
+#else
+		fs::path assetPath( getAppPath() / "assets" );
+#endif
+		createDirectories( assetPath );
+		paramsXml = assetPath / "params.xml" ;
+	}
+
 	params::PInterfaceGl::load( paramsXml );
 
 	mParams = params::PInterfaceGl( "Parameters", Vec2i( 300, 600 ) );
