@@ -71,7 +71,7 @@ void HeartRateApp::setup()
 	gl::disableVerticalSync();
 
 	// params
-	fs::path paramsXml = getResourcePath() / "params.xml";
+	fs::path paramsXml( getAssetPath( "params.xml" ));
 	params::PInterfaceGl::load( paramsXml );
 
 	mParams = params::PInterfaceGl( "Parameters", Vec2i( 300, 600 ) );
