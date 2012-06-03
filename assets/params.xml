@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Parameters>
+	<width>300</width>
+	<height>600</height>
+	<posx>16</posx>
+	<posy>16</posy>
+	<icon>0</icon>
+	<OutlineActiveColor>ff803480</OutlineActiveColor>
+</Parameters>
+
