@@ -1,0 +1,7 @@
+# Compiled Object files
+*.o
+
+# scons
+scons/*
+!scons/SConstruct
+
