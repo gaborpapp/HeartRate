@@ -3,6 +3,8 @@ env = Environment()
 env['APP_TARGET'] = 'HeartRateApp'
 env['APP_SOURCES'] = ['HeartRateApp.cpp', 'HeartShape.cpp', 'PParams.cpp']
 env['RESOURCES'] = []
-env['DEBUG'] = 1
+env['ASSETS'] = ['heart.obj', 'HeartVert.glsl', 'HeartFrag.glsl', 'test.png',
+		'DisplaceVert.glsl', 'DisplaceFrag.glsl']
+env['DEBUG'] = 0
 
 SConscript('../../../scons/SConscript', exports = 'env')

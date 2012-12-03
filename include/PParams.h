@@ -98,7 +98,7 @@ class PInterfaceGl : public InterfaceGl {
 	 * called at application start up, before creating persistent parameteres.
 	 * Will remember the filename for saving later.
 	 */
-	static void load(const fs::path& path);
+	static void load( const std::string &path = "params.xml" );
 
 	/** Save persistent params (to the path passed to load before). */
 	static void save();

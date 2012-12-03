@@ -15,12 +15,13 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "cinder/Cinder.h"
 #include "cinder/app/AppBasic.h"
 #include "cinder/gl/gl.h"
 #include "cinder/params/Params.h"
 
-#include "cinder/Xml.h"
+#include "cinder/Arcball.h"
+#include "cinder/Camera.h"
+#include "cinder/Cinder.h"
 
 #include "HeartShape.h"
 #include "PParams.h"
@@ -38,6 +39,9 @@ class HeartRateApp : public AppBasic
 		void shutdown();
 
 		void keyDown( KeyEvent event );
+		void mouseDown( MouseEvent event );
+		void mouseDrag( MouseEvent event );
+
 		void resize( ResizeEvent event );
 
 		void update();
@@ -46,16 +50,17 @@ class HeartRateApp : public AppBasic
 	private:
 		HeartShape mHeart;
 
+		Arcball mArcball;
+		CameraPersp mCamera;
+
 		params::PInterfaceGl mParams;
+
 		// heart shape
-		ColorA mColorActiveOutline;
-		ColorA mColorInactiveOutline;
 		ColorA mColorInactive;
 		ColorA mColorActive;
-		float mOutlineWidth;
-		float mMinSize;
-		float mMaxSize;
-		int mNumSegments;
+		float mDisplaceScale;
+		bool mTextureEnabled;
+		bool mDrawDisplace;
 
 		// debug
 		float mFps;
@@ -63,7 +68,7 @@ class HeartRateApp : public AppBasic
 
 void HeartRateApp::prepareSettings( Settings *settings )
 {
-	settings->setWindowSize( 640, 480 );
+	settings->setWindowSize( 1024, 768 );
 }
 
 void HeartRateApp::setup()
@@ -71,34 +76,31 @@ void HeartRateApp::setup()
 	gl::disableVerticalSync();
 
 	// params
-	fs::path paramsXml( getAssetPath( "params.xml" ));
-	if ( paramsXml.empty() )
-	{
-#if defined( CINDER_MAC )
-		fs::path assetPath( getResourcePath() / "assets" );
-#else
-		fs::path assetPath( getAppPath() / "assets" );
-#endif
-		createDirectories( assetPath );
-		paramsXml = assetPath / "params.xml" ;
-	}
-
-	params::PInterfaceGl::load( paramsXml );
+	params::PInterfaceGl::load( "params.xml" );
 
 	mParams = params::PInterfaceGl( "Parameters", Vec2i( 300, 600 ) );
 	mParams.addPersistentSizeAndPosition();
 
 	// heart shape
 	mParams.addText( "Heart shape" );
-	mParams.addPersistentParam( "Active color", &mColorActive, ColorA::hexA( 0xffab0706 ) );
+	//mParams.addPersistentParam( "Active color", &mColorActive, ColorA::hexA( 0xffab0706 ) );
+	mParams.addPersistentParam( "Active color", &mColorActive, ColorA::white() );
 	mParams.addPersistentParam( "Inactive color", &mColorInactive, ColorA::hexA( 0xff862c2c ) );
-	mParams.addPersistentParam( "Outline active color", &mColorActiveOutline, ColorA::hexA( 0xfff40100 ) );
-	mParams.addPersistentParam( "Outline inactive color", &mColorInactiveOutline, ColorA::hexA( 0xff726265 ) );
-	mParams.addPersistentParam( "Outline width", &mOutlineWidth, 2.0, "min=0 max=15 step=.2" );
-	mParams.addPersistentParam( "Minimum size", &mMinSize, 1.0, "min=0 max=3.5 step=.01" );
-	mParams.addPersistentParam( "Maximum size", &mMaxSize, 2.5, "min=0 max=3.5 step=.01" );
-	mParams.addPersistentParam( "Segment number", &mNumSegments, 100, "min=4 max=400" );
+	mParams.addPersistentParam( "Displace scale", &mDisplaceScale, 15.f, "min=0 max=50" );
+	mParams.addPersistentParam( "Texture enable", &mTextureEnabled, true );
+	mParams.addPersistentParam( "Draw displace map", &mDrawDisplace, false );
+
 	// heart behaviour
+
+	mHeart.setup();
+
+    // set up the arcball
+    mArcball = Arcball( getWindowSize() );
+    mArcball.setRadius( getWindowWidth() * 0.5f );
+
+	// set up the camera
+	mCamera.setPerspective( 60.f, getWindowAspectRatio(), 0.1f, 1000.0f );
+	mCamera.lookAt( Vec3f( 0.f, -30.f, -200.f ), Vec3f( 0.0f, -30.f, 0.0f ) );
 
 	// debug
 	mParams.addSeparator();
@@ -111,9 +113,39 @@ void HeartRateApp::shutdown()
 	params::PInterfaceGl::save();
 }
 
-void HeartRateApp::resize( ResizeEvent event )
+void HeartRateApp::update()
 {
-	mHeart.resize( event );
+	mHeart.setColorActive( mColorActive );
+	mHeart.setColorInactive( mColorInactive );
+	mHeart.setDisplacementScale( mDisplaceScale );
+	mHeart.enableTexture( mTextureEnabled );
+	mHeart.update();
+
+	mFps = getAverageFps();
+}
+
+void HeartRateApp::draw()
+{
+	gl::clear( Color::black() );
+
+	gl::setViewport( getWindowBounds() );
+	gl::setMatrices( mCamera );
+	gl::multModelView( mArcball.getQuat() );
+
+	mHeart.draw();
+
+	if ( mDrawDisplace )
+	{
+		gl::disableDepthRead();
+		gl::disableDepthWrite();
+		gl::setMatricesWindow( getWindowSize() );
+
+		gl::color( Color::white() );
+		const gl::Texture displaceMap = mHeart.getDisplacementTexture();
+		gl::draw( displaceMap, Rectf( getWindowBounds() ) * .3f + Vec2f( getWindowWidth() * .7f, 0.f ) );
+	}
+
+	params::InterfaceGl::draw();
 }
 
 void HeartRateApp::keyDown( KeyEvent event )
@@ -124,27 +156,19 @@ void HeartRateApp::keyDown( KeyEvent event )
 		quit();
 }
 
-void HeartRateApp::update()
+void HeartRateApp::mouseDown( MouseEvent event )
 {
-	mHeart.setColorActive( mColorActive );
-	mHeart.setColorInactive( mColorInactive );
-	mHeart.setColorActiveOutline( mColorActiveOutline );
-	mHeart.setColorInactiveOutline( mColorInactiveOutline );
-	mHeart.setOutlineWidth( mOutlineWidth );
-	mHeart.setMinSize( mMinSize );
-	mHeart.setMaxSize( mMaxSize );
-	mHeart.setNumSegments( mNumSegments );
-
-	mFps = getAverageFps();
+	mArcball.mouseDown( event.getPos() );
 }
 
-void HeartRateApp::draw()
+void HeartRateApp::mouseDrag( MouseEvent event )
 {
-	gl::clear( Color::black() );
+	mArcball.mouseDrag( event.getPos() );
+}
 
-	mHeart.draw();
-
-	params::InterfaceGl::draw();
+void HeartRateApp::resize( ResizeEvent event )
+{
+	mCamera.setPerspective( 60.f, event.getAspectRatio(), 0.1f, 1000.0f );
 }
 
 CINDER_APP_BASIC( HeartRateApp, RendererGl( RendererGl::AA_NONE ) )

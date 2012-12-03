@@ -1,45 +1,46 @@
 #pragma once
 
-#include <vector>
-
-#include "cinder/Color.h"
-#include "cinder/Vector.h"
 #include "cinder/app/App.h"
+#include "cinder/gl/Fbo.h"
+#include "cinder/gl/GlslProg.h"
+#include "cinder/gl/Material.h"
+#include "cinder/gl/Texture.h"
+#include "cinder/Area.h"
+#include "cinder/Color.h"
+#include "cinder/TriMesh.h"
+#include "cinder/Vector.h"
 
 class HeartShape
 {
 	public:
 		HeartShape();
 
+		void setup();
+		void update();
 		void draw();
 
-		void resize( ci::app::ResizeEvent event );
-
-		void setMinSize( float minSize ) { mMinSize = minSize; }
-		void setMaxSize( float maxSize ) { mMaxSize = maxSize; }
-
 		void setColorInactive( const ci::ColorA &color ) { mColorInactive = color; }
-		void setColorActive( const ci::ColorA &color ) { mColorActive = color; }
-		void setColorInactiveOutline( const ci::ColorA &color ) { mColorInactiveOutline = color; }
-		void setColorActiveOutline( const ci::ColorA &color ) { mColorActiveOutline = color; }
+		void setColorActive( const ci::ColorA &color ) { mMaterial.setDiffuse( color ); }
+		void setDisplacementScale( float scale ) { mDisplaceScale = scale; }
 
-		void setNumSegments( int numSegments ) { mNumSegments = numSegments; }
-		void setOutlineWidth( float width ) { mOutlineWidth = width; }
+		void enableTexture( bool enable = true ) { mTextureEnabled = enable; }
+
+		const ci::gl::Texture &getDisplacementTexture() { return mFbo.getTexture(); }
 
 	protected:
 		ci::ColorA mColorInactive;
 		ci::ColorA mColorActive;
-		ci::ColorA mColorInactiveOutline;
-		ci::ColorA mColorActiveOutline;
+		float mDisplaceScale;
+		bool mTextureEnabled;
+		ci::Vec2i mFboSize;
 
-		float mMinSize;
-		float mMaxSize;
+		ci::TriMesh mTriMesh;
 
-		int mNumSegments;
-		float mOutlineWidth;
+		ci::gl::GlslProg mShader;
+		ci::gl::Material mMaterial;
+		ci::gl::Texture mTexture;
 
-		ci::Vec2i mAreaSize;
-
-		std::vector< ci::Vec2f > mPoints;
+		ci::gl::Fbo mFbo;
+		ci::gl::GlslProg mDisplacementShader;
 };
 

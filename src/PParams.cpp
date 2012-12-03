@@ -23,6 +23,7 @@
 #include "cinder/app/App.h"
 #include "PParams.h"
 #include "cinder/Filesystem.h"
+#include "cinder/Utilities.h"
 
 #include "AntTweakBar.h"
 
@@ -72,11 +73,23 @@ std::string PInterfaceGl::name2id( const std::string& name ) {
 	return id;
 }
 
-void PInterfaceGl::load(const fs::path& fname)
+void PInterfaceGl::load( const std::string &fname )
 {
-	filename() = fname;
-	if (fs::exists( fname )) {
-		root() = XmlTree( loadFile(fname) );
+	fs::path paramsXml( app::getAssetPath( fname ));
+	if ( paramsXml.empty() )
+	{
+#if defined( CINDER_MAC )
+		fs::path assetPath( app::App::getResourcePath() / "assets" );
+#else
+		fs::path assetPath( app::App::getAppPath() / "assets" );
+#endif
+		createDirectories( assetPath );
+		paramsXml = assetPath / "params.xml" ;
+	}
+
+	filename() = paramsXml;
+	if ( fs::exists( paramsXml ) ) {
+		root() = XmlTree( loadFile( paramsXml ) );
 	}
 }
 
