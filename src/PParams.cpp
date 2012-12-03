@@ -47,7 +47,7 @@ std::string PInterfaceGl::name2id( const std::string& name ) {
 					id += c;
 					state = APPEND;
 				} else if (isdigit(c)) {
-					id = "_" + c;
+					id = "_" + string( 1, c );
 					state = APPEND;
 				}
 				break;
@@ -93,12 +93,12 @@ void PInterfaceGl::addPersistentSizeAndPosition()
 
 	std::string idW = name2id("width");
 	size[0] = getXml().hasChild(idW)
-		? getXml().getChild(idW).getValue((float)size[0])
+		? getXml().getChild(idW).getValue((int)size[0])
 		: size[0];
 
 	std::string idH = name2id("height");
 	size[1] = getXml().hasChild(idH)
-		? getXml().getChild(idH).getValue((float)size[1])
+		? getXml().getChild(idH).getValue((int)size[1])
 		: size[1];
 
 	TwSetParam( mBar.get(), NULL, "size", TW_PARAM_INT32, 2, size );
@@ -127,6 +127,16 @@ void PInterfaceGl::addPersistentSizeAndPosition()
 		: icon;
 
 	TwSetParam( mBar.get(), NULL, "iconified", TW_PARAM_INT32, 1, &icon );
+
+	int valuesWidth;
+	TwGetParam( mBar.get(), NULL, "valueswidth", TW_PARAM_INT32, 1, &valuesWidth );
+
+	std::string idValuesWidth = name2id("valueswidth");
+	valuesWidth = getXml().hasChild(idValuesWidth)
+		? getXml().getChild(idValuesWidth).getValue((int)valuesWidth)
+		: valuesWidth;
+
+	TwSetParam( mBar.get(), NULL, "valueswidth", TW_PARAM_INT32, 1, &valuesWidth );
 
 	persistCallbacks().push_back(
 			boost::bind( &PInterfaceGl::persistSizeAndPosition, this) );
@@ -167,6 +177,13 @@ void PInterfaceGl::persistSizeAndPosition()
 	if (!getXml().hasChild(idIcon))
 		getXml().push_back(XmlTree(idIcon,""));
 	getXml().getChild(idIcon).setValue(icon);
+
+	int valuesWidth;
+	TwGetParam( mBar.get(), NULL, "valueswidth", TW_PARAM_INT32, 1, &valuesWidth );
+	std::string idValuesWidth = name2id("valueswidth");
+	if (!getXml().hasChild(idValuesWidth))
+		getXml().push_back(XmlTree(idValuesWidth,""));
+	getXml().getChild(idValuesWidth).setValue(valuesWidth);
 }
 
 //! Adds enumerated persistent parameter. The value corresponds to the indices of \a enumNames.
@@ -222,10 +239,31 @@ void PInterfaceGl::addPersistentParam(const std::string& name, ci::ColorA *var, 
 			: colorToHex(defVal);
 	*var = hexToColor( colorStr );
 	persistCallbacks().push_back(
+		boost::bind( &PInterfaceGl::persistColorA, this, var, id ) );
+}
+
+void PInterfaceGl::persistColorA(ci::ColorA *var, const std::string& paramId)
+{
+	if (!getXml().hasChild(paramId))
+		getXml().push_back(XmlTree(paramId,""));
+	getXml().getChild(paramId).setValue( colorToHex( *var ) );
+}
+
+void PInterfaceGl::addPersistentParam(const std::string& name, ci::Color *var, const ci::Color &defVal,
+		const std::string& optionsStr, bool readOnly)
+{
+	addParam(name,var,optionsStr,readOnly);
+	const std::string id = name2id(name);
+	std::string colorStr = getXml().hasChild(id)
+			? getXml().getChild(id).getValue(colorToHex(defVal))
+			: colorToHex(defVal);
+	ColorA ca = hexToColor( colorStr );
+	*var = Color( ca.r, ca.g, ca.b );
+	persistCallbacks().push_back(
 		boost::bind( &PInterfaceGl::persistColor, this, var, id ) );
 }
 
-void PInterfaceGl::persistColor(ci::ColorA * var, const std::string& paramId)
+void PInterfaceGl::persistColor(ci::Color *var, const std::string& paramId)
 {
 	if (!getXml().hasChild(paramId))
 		getXml().push_back(XmlTree(paramId,""));

@@ -1,7 +1,8 @@
-TARGET = 'HeartRateApp'
-SOURCES  = ['HeartRateApp.cpp', 'HeartShape.cpp', 'PParams.cpp']
-DEBUG = 1
+env = Environment()
 
-SConscript('../../../scons/SConscript',
-	exports = ['TARGET', 'SOURCES', 'DEBUG'])
+env['APP_TARGET'] = 'HeartRateApp'
+env['APP_SOURCES'] = ['HeartRateApp.cpp', 'HeartShape.cpp', 'PParams.cpp']
+env['RESOURCES'] = []
+env['DEBUG'] = 1
 
+SConscript('../../../scons/SConscript', exports = 'env')

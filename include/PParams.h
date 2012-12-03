@@ -62,14 +62,39 @@ class PInterfaceGl : public InterfaceGl {
 				boost::bind( &PInterfaceGl::persistParam<T>, this, var, id ) );
 	}
 
+	void addPersistentParam(const std::string& name, ci::Color *var, const ci::Color &defVal,
+			const std::string& optionsStr="", bool readOnly=false);
 	void addPersistentParam(const std::string& name, ci::ColorA *var, const ci::ColorA &defVal,
 			const std::string& optionsStr="", bool readOnly=false);
+
+	template<typename T>
+	void addPersistentParam(const std::string& name, ci::Vec3<T> *var, const ci::Vec3<T> &defVal,
+			const std::string& optionsStr="", bool readOnly=false)
+	{
+		addParam(name,var,optionsStr,readOnly);
+		const std::string id = name2id(name);
+		var->x = getXml().hasChild(id+"_x")
+			? getXml().getChild(id+"_x").getValue(defVal.x)
+			: defVal.x;
+		var->y = getXml().hasChild(id+"_y")
+			? getXml().getChild(id+"_y").getValue(defVal.y)
+			: defVal.y;
+		var->z = getXml().hasChild(id+"_z")
+			? getXml().getChild(id+"_z").getValue(defVal.z)
+			: defVal.z;
+		persistCallbacks().push_back(
+				boost::bind( &PInterfaceGl::persistParam<T>, this, &(var->x), id+"_x" ) );
+		persistCallbacks().push_back(
+				boost::bind( &PInterfaceGl::persistParam<T>, this, &(var->y), id+"_y" ) );
+		persistCallbacks().push_back(
+				boost::bind( &PInterfaceGl::persistParam<T>, this, &(var->z), id+"_z" ) );
+	}
 
 	//! Adds enumerated persistent parameter. The value corresponds to the indices of \a enumNames.
 	void addPersistentParam(const std::string& name, std::vector<std::string> &enumNames, int* var, int defVal,
 			const std::string& optionsStr="", bool readOnly=false);
 
-	/** Load persistent params from file. At the moment this only works when
+	/** Loads persistent params from file. At the moment this only works when
 	 * called at application start up, before creating persistent parameteres.
 	 * Will remember the filename for saving later.
 	 */
@@ -125,7 +150,8 @@ protected:
 	std::string colorToHex(const ci::ColorA &color);
 	ci::ColorA hexToColor(const std::string &hex);
 
-	void persistColor(ci::ColorA * var, const std::string& paramId);
+	void persistColor(ci::Color *var, const std::string& paramId);
+	void persistColorA(ci::ColorA *var, const std::string& paramId);
 
 	XmlTree& getXml() {
 		if (!root().hasChild(m_id))
