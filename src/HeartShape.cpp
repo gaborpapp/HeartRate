@@ -11,10 +11,6 @@ using namespace ci;
 using namespace std;
 
 HeartShape::HeartShape() :
-	mColorInactive( ColorA::hexA( 0xff862c2c ) ),
-	//mColorActive( ColorA::hexA( 0xffab0706 ) )
-	mColorActive( ColorA::white() ),
-	mDisplaceScale( 15.f ),
 	mTextureEnabled( true ),
 	mFboSize( Vec2i( 64, 64 ) )
 {
@@ -30,8 +26,10 @@ void HeartShape::setup()
 	{
 		mShader = gl::GlslProg( app::loadAsset( "HeartVert.glsl" ),
 								app::loadAsset( "HeartFrag.glsl" ) );
-		mDisplacementShader = gl::GlslProg( app::loadAsset( "DisplaceVert.glsl" ),
-											app::loadAsset( "DisplaceFrag.glsl" ) );
+		mDispMapShader = gl::GlslProg( app::loadAsset( "DisplaceVert.glsl" ),
+									   app::loadAsset( "DisplaceFrag.glsl" ) );
+		mNormalMapShader = gl::GlslProg( app::loadAsset( "NormalVert.glsl" ),
+										 app::loadAsset( "NormalFrag.glsl" ) );
 	}
 	catch ( const gl::GlslProgCompileExc &exc )
 	{
@@ -44,19 +42,40 @@ void HeartShape::setup()
 	gl::Fbo::Format format;
 	format.setColorInternalFormat( GL_RGB32F_ARB );
 	format.enableDepthBuffer( false );
-	mFbo = gl::Fbo( mFboSize.x, mFboSize.y, format );
+	mDispMapFbo = gl::Fbo( mFboSize.x, mFboSize.y, format );
+	mNormalMapFbo = gl::Fbo( mFboSize.x, mFboSize.y, format );
+
+	mParams = params::PInterfaceGl( "Heart", Vec2i( 300, 120 ), Vec2i( 326, 16 ) );
+	mParams.addPersistentSizeAndPosition();
+
+	//mParams.addPersistentParam( "Active color", &mColorActive, ColorA::hexA( 0xffab0706 ) );
+	mParams.addPersistentParam( "Active color", &mColorActive, ColorA::white() );
+	mParams.addPersistentParam( "Inactive color", &mColorInactive, ColorA::hexA( 0xff862c2c ) );
+	mParams.addPersistentParam( "Displace scale", &mDisplaceScale, 15.f, "min=0 max=50" );
+	mParams.addPersistentParam( "Normal amlitude", &mNormalAmlitude, 10.f, "min=1 max=50" );
+	mParams.addPersistentParam( "Texture enable", &mTextureEnabled, true );
 }
 
 void HeartShape::update()
 {
-	gl::SaveFramebufferBinding bindingSaver;
-	mFbo.bindFramebuffer();
-	gl::setViewport( mFbo.getBounds() );
-	gl::setMatricesWindow( mFbo.getSize(), false );
-	mDisplacementShader.bind();
-	mDisplacementShader.uniform( "theta", static_cast< float >( app::getElapsedSeconds() ) );
-	gl::drawSolidRect( mFbo.getBounds() );
-	mDisplacementShader.unbind();
+	mDispMapFbo.bindFramebuffer();
+	gl::setViewport( mDispMapFbo.getBounds() );
+	gl::setMatricesWindow( mDispMapFbo.getSize(), false );
+	mDispMapShader.bind();
+	mDispMapShader.uniform( "theta", static_cast< float >( app::getElapsedSeconds() ) );
+	gl::drawSolidRect( mDispMapFbo.getBounds() );
+	mDispMapShader.unbind();
+	mDispMapFbo.unbindFramebuffer();
+
+	mNormalMapFbo.bindFramebuffer();
+	mNormalMapShader.bind();
+	mNormalMapShader.uniform( "texture", 0 );
+	mNormalMapShader.uniform( "amplitude", mNormalAmlitude );
+	mDispMapFbo.getTexture().bind();
+	gl::drawSolidRect( mNormalMapFbo.getBounds() );
+	mDispMapFbo.getTexture().unbind();
+	mNormalMapShader.unbind();
+	mNormalMapFbo.unbindFramebuffer();
 }
 
 void HeartShape::draw()
@@ -64,17 +83,18 @@ void HeartShape::draw()
 	gl::enableDepthRead();
 	gl::enableDepthWrite();
 	mTexture.bind();
-	mFbo.getTexture().bind( 1 );
+	mDispMapFbo.getTexture().bind( 1 );
 	mShader.bind();
 	mShader.uniform( "displacement", 1 );
 	mShader.uniform( "scale", mDisplaceScale );
 
 	mShader.uniform( "tex", 0 );
 	mShader.uniform( "textureEnabled", mTextureEnabled );
+	mMaterial.setDiffuse( mColorActive );
 	mMaterial.apply();
 	gl::draw( mTriMesh );
 	mShader.unbind();
 	mTexture.unbind();
-	mFbo.getTexture().unbind( 1 );
+	mDispMapFbo.getTexture().unbind( 1 );
 }
 

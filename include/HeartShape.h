@@ -10,6 +10,8 @@
 #include "cinder/TriMesh.h"
 #include "cinder/Vector.h"
 
+#include "PParams.h"
+
 class HeartShape
 {
 	public:
@@ -19,18 +21,14 @@ class HeartShape
 		void update();
 		void draw();
 
-		void setColorInactive( const ci::ColorA &color ) { mColorInactive = color; }
-		void setColorActive( const ci::ColorA &color ) { mMaterial.setDiffuse( color ); }
-		void setDisplacementScale( float scale ) { mDisplaceScale = scale; }
-
-		void enableTexture( bool enable = true ) { mTextureEnabled = enable; }
-
-		const ci::gl::Texture &getDisplacementTexture() { return mFbo.getTexture(); }
+		const ci::gl::Texture &getDisplacementTexture() { return mDispMapFbo.getTexture(); }
+		const ci::gl::Texture &getNormalTexture() { return mNormalMapFbo.getTexture(); }
 
 	protected:
 		ci::ColorA mColorInactive;
 		ci::ColorA mColorActive;
 		float mDisplaceScale;
+		float mNormalAmlitude;
 		bool mTextureEnabled;
 		ci::Vec2i mFboSize;
 
@@ -40,7 +38,12 @@ class HeartShape
 		ci::gl::Material mMaterial;
 		ci::gl::Texture mTexture;
 
-		ci::gl::Fbo mFbo;
-		ci::gl::GlslProg mDisplacementShader;
+		ci::gl::Fbo mDispMapFbo;
+		ci::gl::GlslProg mDispMapShader;
+
+		ci::gl::Fbo mNormalMapFbo;
+		ci::gl::GlslProg mNormalMapShader;
+
+		ci::params::PInterfaceGl mParams;
 };
 

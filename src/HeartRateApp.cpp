@@ -55,15 +55,9 @@ class HeartRateApp : public AppBasic
 
 		params::PInterfaceGl mParams;
 
-		// heart shape
-		ColorA mColorInactive;
-		ColorA mColorActive;
-		float mDisplaceScale;
-		bool mTextureEnabled;
-		bool mDrawDisplace;
-
 		// debug
 		float mFps;
+		bool mDrawDisplace;
 };
 
 void HeartRateApp::prepareSettings( Settings *settings )
@@ -78,19 +72,16 @@ void HeartRateApp::setup()
 	// params
 	params::PInterfaceGl::load( "params.xml" );
 
-	mParams = params::PInterfaceGl( "Parameters", Vec2i( 300, 600 ) );
+	mParams = params::PInterfaceGl( "Parameters", Vec2i( 300, 120 ) );
 	mParams.addPersistentSizeAndPosition();
 
 	// heart shape
 	mParams.addText( "Heart shape" );
-	//mParams.addPersistentParam( "Active color", &mColorActive, ColorA::hexA( 0xffab0706 ) );
-	mParams.addPersistentParam( "Active color", &mColorActive, ColorA::white() );
-	mParams.addPersistentParam( "Inactive color", &mColorInactive, ColorA::hexA( 0xff862c2c ) );
-	mParams.addPersistentParam( "Displace scale", &mDisplaceScale, 15.f, "min=0 max=50" );
-	mParams.addPersistentParam( "Texture enable", &mTextureEnabled, true );
+	// debug
+	mFps = 0;
+	mParams.addParam( "Fps", &mFps, "", false );
+	mParams.addSeparator();
 	mParams.addPersistentParam( "Draw displace map", &mDrawDisplace, false );
-
-	// heart behaviour
 
 	mHeart.setup();
 
@@ -102,10 +93,6 @@ void HeartRateApp::setup()
 	mCamera.setPerspective( 60.f, getWindowAspectRatio(), 0.1f, 1000.0f );
 	mCamera.lookAt( Vec3f( 0.f, -30.f, -200.f ), Vec3f( 0.0f, -30.f, 0.0f ) );
 
-	// debug
-	mParams.addSeparator();
-	mFps = 0;
-	mParams.addParam( "Fps", &mFps, "", false );
 }
 
 void HeartRateApp::shutdown()
@@ -115,10 +102,6 @@ void HeartRateApp::shutdown()
 
 void HeartRateApp::update()
 {
-	mHeart.setColorActive( mColorActive );
-	mHeart.setColorInactive( mColorInactive );
-	mHeart.setDisplacementScale( mDisplaceScale );
-	mHeart.enableTexture( mTextureEnabled );
 	mHeart.update();
 
 	mFps = getAverageFps();
@@ -142,7 +125,9 @@ void HeartRateApp::draw()
 
 		gl::color( Color::white() );
 		const gl::Texture displaceMap = mHeart.getDisplacementTexture();
-		gl::draw( displaceMap, Rectf( getWindowBounds() ) * .3f + Vec2f( getWindowWidth() * .7f, 0.f ) );
+		gl::draw( displaceMap, Rectf( getWindowBounds() ) * .2f + Vec2f( getWindowWidth() * .6f, 0.f ) );
+		const gl::Texture normalMap = mHeart.getNormalTexture();
+		gl::draw( normalMap, Rectf( getWindowBounds() ) * .2f + Vec2f( getWindowWidth() * .8f, 0.f ) );
 	}
 
 	params::InterfaceGl::draw();

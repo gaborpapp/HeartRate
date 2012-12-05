@@ -36,6 +36,14 @@ using namespace std;
 
 namespace cinder { namespace params {
 
+PInterfaceGl::PInterfaceGl( const std::string &title, const Vec2i &size, const Vec2i &pos /* = Vec2i::zero() */,
+							const ColorA colorA /* = ColorA( 0.3f, 0.3f, 0.3f, 0.4f ) */ ) :
+	InterfaceGl( title, size, colorA ), m_id( name2id( title ) )
+{
+	if ( pos != Vec2i::zero() )
+		TwSetParam( mBar.get(), NULL, "position", TW_PARAM_INT32, 2, pos.ptr() );
+}
+
 std::string PInterfaceGl::name2id( const std::string& name ) {
 	std::string id = "";
 	enum State { START, APPEND, UPCASE };

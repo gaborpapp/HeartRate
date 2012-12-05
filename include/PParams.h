@@ -36,8 +36,8 @@ namespace cinder { namespace params {
 class PInterfaceGl : public InterfaceGl {
  public:
 	PInterfaceGl() {}
-	PInterfaceGl( const std::string &title, const Vec2i &size, const ColorA colorA = ColorA( 0.3f, 0.3f, 0.3f, 0.4f ) )
-		: InterfaceGl( title, size, colorA ), m_id( name2id( title ) ) {}
+	PInterfaceGl( const std::string &title, const Vec2i &size, const Vec2i &pos = Vec2i::zero(),
+				  const ColorA colorA = ColorA( 0.3f, 0.3f, 0.3f, 0.4f ) );
 
 	/** Add a persistent parameter for the window size, position and iconified status
 	 * Persistent parameter will be initialized with saved value if found, or with
