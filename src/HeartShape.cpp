@@ -52,7 +52,7 @@ void HeartShape::setup()
 	mParams.addPersistentParam( "Active color", &mColorActive, ColorA::white() );
 	mParams.addPersistentParam( "Inactive color", &mColorInactive, ColorA::hexA( 0xff862c2c ) );
 	mParams.addPersistentParam( "Displace scale", &mDisplaceScale, 15.f, "min=0 max=50" );
-	mParams.addPersistentParam( "Normal amlitude", &mNormalAmlitude, 10.f, "min=1 max=50" );
+	mParams.addPersistentParam( "Normal amlitude", &mNormalAmplitude, 10.f, "min=1 max=50" );
 	mParams.addPersistentParam( "Texture enable", &mTextureEnabled, true );
 }
 
@@ -70,7 +70,7 @@ void HeartShape::update()
 	mNormalMapFbo.bindFramebuffer();
 	mNormalMapShader.bind();
 	mNormalMapShader.uniform( "texture", 0 );
-	mNormalMapShader.uniform( "amplitude", mNormalAmlitude );
+	mNormalMapShader.uniform( "amplitude", mNormalAmplitude );
 	mDispMapFbo.getTexture().bind();
 	gl::drawSolidRect( mNormalMapFbo.getBounds() );
 	mDispMapFbo.getTexture().unbind();
@@ -96,5 +96,14 @@ void HeartShape::draw()
 	mShader.unbind();
 	mTexture.unbind();
 	mDispMapFbo.getTexture().unbind( 1 );
+
+	/*
+	const std::vector< Vec3f > &v = mTriMesh.getVertices();
+	const std::vector< Vec3f > &n = mTriMesh.getNormals();
+	for ( size_t i = 0; i < n.size(); i++ )
+	{
+		gl::drawVector( v[ i ], v[ i ] + 10 * n[ i ] );
+	}
+	*/
 }
 

@@ -28,7 +28,7 @@ class HeartShape
 		ci::ColorA mColorInactive;
 		ci::ColorA mColorActive;
 		float mDisplaceScale;
-		float mNormalAmlitude;
+		float mNormalAmplitude;
 		bool mTextureEnabled;
 		ci::Vec2i mFboSize;
 

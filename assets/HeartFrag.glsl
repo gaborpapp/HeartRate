@@ -15,6 +15,8 @@ void main()
 
 	// diffuse term
 	vec4 Idiff = gl_Color * gl_FrontMaterial.diffuse;
+	if ( textureEnabled )
+		Idiff *= texture2D( tex, gl_TexCoord[ 0 ].st );
 	Idiff *= max( dot( N, L ), 0. );
 	Idiff = clamp( Idiff, 0., 1. );
 
@@ -23,11 +25,7 @@ void main()
 	Ispec *= pow( max( dot( R, E ), 0. ), gl_FrontMaterial.shininess );
 	Ispec = clamp( Ispec, 0., 1. );
 
-	vec4 col = vec4( 1, 1, 1, 1 );
-	if ( textureEnabled )
-		col = texture2D( tex, gl_TexCoord[ 0 ].st );
-
 	// final color
-	gl_FragColor = col * ( Iamb + Idiff + Ispec );
+	gl_FragColor = Iamb + Idiff + Ispec;
 }
 
