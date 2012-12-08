@@ -1,10 +1,13 @@
 #pragma once
 
+#include <vector>
+
 #include "cinder/app/App.h"
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Material.h"
 #include "cinder/gl/Texture.h"
+#include "cinder/gl/Vbo.h"
 #include "cinder/Area.h"
 #include "cinder/Color.h"
 #include "cinder/TriMesh.h"
@@ -28,11 +31,19 @@ class HeartShape
 		ci::ColorA mColorInactive;
 		ci::ColorA mColorActive;
 		float mDisplaceScale;
-		float mNormalAmplitude;
+		//float mNormalAmplitude;
 		bool mTextureEnabled;
+		bool mHeartEnabled;
+		bool mNormalsEnabled;
 		ci::Vec2i mFboSize;
 
 		ci::TriMesh mTriMesh;
+
+		void calculateTangents();
+		std::vector< ci::Vec3f > mTangents;
+
+		void setupVbo();
+		ci::gl::VboMesh mVboMesh;
 
 		ci::gl::GlslProg mShader;
 		ci::gl::Material mMaterial;

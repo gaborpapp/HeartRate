@@ -6,6 +6,6 @@ env['RESOURCES'] = []
 env['ASSETS'] = ['heart.obj', 'HeartVert.glsl', 'HeartFrag.glsl', 'test.png',
 		'DisplaceVert.glsl', 'DisplaceFrag.glsl',
 		'NormalVert.glsl', 'NormalFrag.glsl']
-env['DEBUG'] = 0
+env['DEBUG'] = 1
 
 SConscript('../../../scons/SConscript', exports = 'env')

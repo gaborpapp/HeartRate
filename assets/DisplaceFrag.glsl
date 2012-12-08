@@ -1,12 +1,32 @@
-uniform float theta;
+uniform float time;
+uniform float amplitude;
 
-const float twoPi = 3.1415926 * 2.0;
+float wave( float period )
+{
+	return sin( period * 6.283185 );
+}
+
+// calculate displacement based on uv coordinate
+float displace( vec2 uv )
+{
+	// large up and down movement
+	float d = wave( (uv.x * 0.5) - time * 0.1 );
+	// add a large wave from left to right
+	d -= 1.2 * wave( (uv.x * 0.9) - time * 0.4 );
+	// add diagonal waves from back to front
+	d -= 0.25 * wave( ((uv.x + uv.y) * 2.2) - time * 0.5 );
+	// add additional waves for increased complexity
+	d += 0.25 * wave( (uv.y * 1.2) - time * 0.1 );
+	d -= 0.15 * wave( ((uv.y + uv.x) * 2.8) - time * 0.9 );
+	d += 0.15 * wave( ((uv.y - uv.x) * 1.9) - time * 0.8 );
+	d *= wave( uv.y );
+
+	return d;
+}
 
 void main()
 {
-	vec2 offset = vec2( cos( theta * twoPi ), sin( theta * twoPi ) ) * .25 + vec2( 0.5, 0.5 );
-	float dist = distance( gl_TexCoord[ 0 ].st, offset );
-	//float dist = cos( 13. * sin( .9723 * theta ) + 15. * gl_TexCoord[ 0 ].x * gl_TexCoord[ 0 ]. y );
-	gl_FragColor = vec4( dist, dist, dist, 1.0 );
+	float d = amplitude * displace( gl_TexCoord[0].xy );
+	gl_FragColor = vec4( d, d, d, 1.0 );
 }
 

@@ -125,6 +125,7 @@ void HeartRateApp::draw()
 	gl::setViewport( getWindowBounds() );
 	gl::setMatrices( mCamera );
 	gl::multModelView( mArcball.getQuat() );
+	gl::multModelView( Matrix44f::createRotation( Vec3f( 0, M_PI, 0 ) ) );
 
 	mLight->enable();
 	mHeart.draw();
@@ -138,9 +139,9 @@ void HeartRateApp::draw()
 
 		gl::color( Color::white() );
 		const gl::Texture displaceMap = mHeart.getDisplacementTexture();
-		gl::draw( displaceMap, Rectf( getWindowBounds() ) * .2f + Vec2f( getWindowWidth() * .6f, 0.f ) );
+		gl::draw( displaceMap, Rectf( getWindowBounds() ) * .2f + Vec2f( getWindowWidth() * .8f, 0.f ) );
 		const gl::Texture normalMap = mHeart.getNormalTexture();
-		gl::draw( normalMap, Rectf( getWindowBounds() ) * .2f + Vec2f( getWindowWidth() * .8f, 0.f ) );
+		gl::draw( normalMap, Rectf( getWindowBounds() ) * .2f + Vec2f( getWindowWidth() * .8f, getWindowHeight() * .2f ) );
 	}
 
 	params::InterfaceGl::draw();

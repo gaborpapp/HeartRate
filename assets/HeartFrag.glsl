@@ -1,31 +1,37 @@
 uniform sampler2D tex;
+uniform sampler2D normalMap;
 uniform bool textureEnabled;
 
-varying vec3 v;
-varying vec3 N;
+varying vec3 lightVec;
+varying vec3 eyeVec;
 
 void main()
 {
-	vec3 L = normalize( gl_LightSource[ 0 ].position.xyz - v );
-	vec3 E = normalize( -v );
-	vec3 R = normalize( -reflect( L, N ) );
+	vec3 normal = texture2D( normalMap, gl_TexCoord[ 0 ].st ).rgb;
+	normal = normalize( normal );
 
-	// ambient term
-	vec4 Iamb = gl_FrontMaterial.ambient;
+	vec3 eye = normalize( eyeVec );
+	vec3 light = normalize( lightVec );
 
-	// diffuse term
-	vec4 Idiff = gl_Color * gl_FrontMaterial.diffuse;
-	if ( textureEnabled )
-		Idiff *= texture2D( tex, gl_TexCoord[ 0 ].st );
-	Idiff *= max( dot( N, L ), 0. );
-	Idiff = clamp( Idiff, 0., 1. );
+	// compute diffuse lighting
+	float lambertFactor = max( dot( lightVec, normal ), 0.0 );
 
-	// specular term
-	vec4 Ispec = gl_FrontMaterial.specular;
-	Ispec *= pow( max( dot( R, E ), 0. ), gl_FrontMaterial.shininess );
-	Ispec = clamp( Ispec, 0., 1. );
+	gl_FragColor.a = 1.0;
 
-	// final color
-	gl_FragColor = Iamb + Idiff + Ispec;
+	if ( lambertFactor > 0.0 )
+	{
+		vec3 diffuseMaterial = gl_Color.rgb * gl_FrontMaterial.diffuse.rgb;
+		if ( textureEnabled )
+			diffuseMaterial *= texture2D ( tex, gl_TexCoord[0].st ).rgb;
+
+		float specStrenght = 0.9; //gl_FrontMaterial.shininess;
+		vec3 reflect = normalize( 2.0 * lambertFactor * normal - light );
+		//diffuseLight = gl_LightSource[0].diffuse;
+		float shininess = pow( max( dot( reflect, -eye ), 0.0 ), 8.0 ) * specStrenght;
+
+		gl_FragColor.rgb = diffuseMaterial * lambertFactor;
+		gl_FragColor.rgb += vec3( shininess, shininess, shininess );
+	}
+	else
+		gl_FragColor.rgb = vec3( 0, 0, 0 );
 }
-
