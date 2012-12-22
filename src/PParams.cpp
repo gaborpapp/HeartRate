@@ -89,7 +89,7 @@ void PInterfaceGl::load( const std::string &fname )
 #if defined( CINDER_MAC )
 		fs::path assetPath( app::App::getResourcePath() / "assets" );
 #else
-		fs::path assetPath( app::App::getAppPath() / "assets" );
+		fs::path assetPath( app::App::get()->getAppPath() / "assets" );
 #endif
 		createDirectories( assetPath );
 		paramsXml = assetPath / "params.xml" ;
