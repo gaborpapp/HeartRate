@@ -17,20 +17,21 @@
 
 #pragma once
 
-#include "cinder/Cinder.h"
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/GlslProg.h"
+#include "cinder/Channel.h"
+#include "cinder/Cinder.h"
 
 namespace mndl { namespace gl { namespace fx {
 
-class KawaseBloom
+class KawaseHBloom
 {
 	public:
-		KawaseBloom( int w, int h );
-		KawaseBloom() {}
+		KawaseHBloom( int w, int h );
+		KawaseHBloom() {}
 
 		ci::gl::Texture & process( const ci::gl::Texture &source,
-				int iterations, float strength );
+				int iterations, const ci::Channel32f &rowStrength );
 
 	protected:
 		struct Obj

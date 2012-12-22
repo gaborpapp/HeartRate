@@ -1,8 +1,8 @@
 env = Environment()
 
 env['APP_TARGET'] = 'HeartRateApp'
-env['APP_SOURCES'] = ['HeartRateApp.cpp', 'HeartShape.cpp', 'KawaseBloom.cpp',
-		'PParams.cpp']
+env['APP_SOURCES'] = ['HeartRateApp.cpp', 'HeartBloom.cpp', 'HeartShape.cpp',
+		'KawaseHBloom.cpp', 'PParams.cpp']
 env['RESOURCES'] = []
 env['ASSETS'] = ['heart.obj', 'HeartVert.glsl', 'HeartFrag.glsl', 'test.png',
 		'DisplaceVert.glsl', 'DisplaceFrag.glsl',

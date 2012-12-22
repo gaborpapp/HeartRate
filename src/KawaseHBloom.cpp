@@ -20,7 +20,7 @@
 #include "cinder/Surface.h"
 #include "cinder/CinderMath.h"
 
-#include "KawaseBloom.h"
+#include "KawaseHBloom.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -30,7 +30,7 @@ namespace mndl { namespace gl { namespace fx {
 
 #define STRINGIFY(x) #x
 
-const char *KawaseBloom::sBloomVertexShader = "#version 120\n"
+const char *KawaseHBloom::sBloomVertexShader = "#version 120\n"
 	STRINGIFY(
 		uniform vec2 pixelSize;
 		uniform int iteration;
@@ -57,7 +57,7 @@ const char *KawaseBloom::sBloomVertexShader = "#version 120\n"
 		}
 );
 
-const char *KawaseBloom::sBloomFragmentShader = "#version 120\n"
+const char *KawaseHBloom::sBloomFragmentShader = "#version 120\n"
 	STRINGIFY(
 		uniform sampler2D tex;
 
@@ -82,7 +82,7 @@ const char *KawaseBloom::sBloomFragmentShader = "#version 120\n"
 );
 
 
-const char *KawaseBloom::sMixerVertexShader = "#version 120\n"
+const char *KawaseHBloom::sMixerVertexShader = "#version 120\n"
 	STRINGIFY(
 		void main()
 		{
@@ -92,15 +92,16 @@ const char *KawaseBloom::sMixerVertexShader = "#version 120\n"
 		}
 );
 
-const char *KawaseBloom::sMixerFragmentShader = "#version 120\n"
+const char *KawaseHBloom::sMixerFragmentShader = "#version 120\n"
 	STRINGIFY(
 		uniform sampler2D tex[ 9 ];
-		uniform float bloomStrength;
+		uniform sampler2D bloomStrength;
 
 		void main()
 		{
 			vec2 uv = gl_TexCoord[ 0 ].st;
 			vec4 c0 = texture2D( tex[ 0 ], uv );
+			float strength = texture2D( bloomStrength, vec2( uv.x, .5 ) ).r;
 
 			vec4 c1 = texture2D( tex[ 1 ], uv );
 			c1 += texture2D( tex[ 2 ], uv );
@@ -111,16 +112,16 @@ const char *KawaseBloom::sMixerFragmentShader = "#version 120\n"
 			c1 += texture2D( tex[ 7 ], uv );
 			c1 += texture2D( tex[ 8 ], uv );
 
-			gl_FragColor = c0 + bloomStrength * c1;
+			gl_FragColor = c0 + strength * c1;
 		}
 );
 
-KawaseBloom::KawaseBloom( int w, int h ) :
+KawaseHBloom::KawaseHBloom( int w, int h ) :
 	mObj( new Obj( w, h ) )
 {
 }
 
-KawaseBloom::Obj::Obj( int w, int h )
+KawaseHBloom::Obj::Obj( int w, int h )
 {
 	ci::gl::Fbo::Format format;
 	format.setWrap( GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE );
@@ -141,10 +142,12 @@ KawaseBloom::Obj::Obj( int w, int h )
 	mMixerShader.bind();
 	int texUnits[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
 	mMixerShader.uniform( "tex", texUnits, 9 );
+	mMixerShader.uniform( "bloomStrength", 9 );
 	mMixerShader.unbind();
 }
 
-ci::gl::Texture &KawaseBloom::process( const ci::gl::Texture &source, int iterations, float strength )
+ci::gl::Texture &KawaseHBloom::process( const ci::gl::Texture &source, int iterations,
+		const ci::Channel32f &rowStrength )
 {
 	Area viewport = ci::gl::getViewport();
 	ci::gl::pushMatrices();
@@ -187,7 +190,9 @@ ci::gl::Texture &KawaseBloom::process( const ci::gl::Texture &source, int iterat
 	ci::gl::enableAlphaBlending();
 
 	mObj->mMixerShader.bind();
-	mObj->mMixerShader.uniform( "bloomStrength", strength );
+
+	ci::gl::Texture strenghtTex( rowStrength );
+	strenghtTex.bind( 9 );
 
 	ci::gl::enable( GL_TEXTURE_2D );
 
@@ -198,6 +203,12 @@ ci::gl::Texture &KawaseBloom::process( const ci::gl::Texture &source, int iterat
 	}
 
 	ci::gl::drawSolidRect( mObj->mOutputFbo.getBounds() );
+
+	for ( int i = 0; i < iterations; i++ )
+	{
+		mObj->mBloomFbo.getTexture( i ).unbind( i + 1 );
+	}
+	strenghtTex.unbind( 9 );
 	mObj->mMixerShader.unbind();
 
 	mObj->mOutputFbo.unbindFramebuffer();

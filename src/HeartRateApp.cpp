@@ -25,8 +25,8 @@
 #include "cinder/Camera.h"
 #include "cinder/Cinder.h"
 
+#include "HeartBloom.h"
 #include "HeartShape.h"
-#include "KawaseBloom.h"
 #include "PParams.h"
 
 
@@ -62,7 +62,7 @@ class HeartRateApp : public AppBasic
 		static const int FBO_HEIGHT;
 		gl::Fbo mFbo;
 
-		mndl::gl::fx::KawaseBloom mBloom;
+		HeartBloom mHeartBloom;
 		int mBloomIterations;
 		float mBloomStrength;
 
@@ -96,12 +96,12 @@ void HeartRateApp::setup()
 	mParams.addPersistentSizeAndPosition();
 
 	// heart shape
-	mParams.addPersistentParam( "Bpm left", &mBpm0, 60.f, "min=40 max=110 step=.1" );
-	mParams.addPersistentParam( "Bpm right", &mBpm1, 60.f, "min=40 max=110 step=.1" );
+	mParams.addPersistentParam( "Bpm left", &mBpm0, 60.f, "min=0 max=180 step=.1" );
+	mParams.addPersistentParam( "Bpm right", &mBpm1, 60.f, "min=0 max=180 step=.1" );
 
 	mParams.addSeparator();
 	mParams.addPersistentParam( "Bloom iterations", &mBloomIterations, 8, "min=0 max=10" );
-	mParams.addPersistentParam( "Bloom strength", &mBloomStrength, 0.2f, "min=0 max=1 step=0.05" );
+	mParams.addPersistentParam( "Bloom strength", &mBloomStrength, 0.9f, "min=0 max=5 step=0.005" );
 
 	// debug
 	mFps = 0;
@@ -113,7 +113,7 @@ void HeartRateApp::setup()
 
 	// heart fbo
 	mFbo = gl::Fbo( FBO_WIDTH, FBO_HEIGHT );
-	mBloom = mndl::gl::fx::KawaseBloom( FBO_WIDTH, FBO_HEIGHT );
+	mHeartBloom = HeartBloom( FBO_WIDTH, FBO_HEIGHT );
 
     // set up the arcball
     mArcball = Arcball( getWindowSize() );
@@ -151,8 +151,8 @@ void HeartRateApp::updateSignal()
 	phase0 += s * mBpm0 / 60.f;
 	phase1 += s * mBpm1 / 60.f;
 
-	mAmplitude0 = math< float >::abs( math< float >::cos( phase0 ) );
-	mAmplitude1 = math< float >::abs( math< float >::cos( phase1 ) );
+	mAmplitude0 = math< float >::clamp( math< float >::sin( phase0 ) );
+	mAmplitude1 = math< float >::clamp( math< float >::sin( phase1 ) );
 	mHeart.setAmplitudes( mAmplitude0, mAmplitude1 );
 }
 
@@ -189,17 +189,32 @@ void HeartRateApp::draw()
 	gl::disableDepthWrite();
 
 	gl::color( Color::white() );
-	gl::Texture heartOutput = mBloom.process( mFbo.getTexture(), mBloomIterations, mBloomStrength * mAmplitude0 );
+
+	gl::Texture heartOutput = mHeartBloom.process( mFbo.getTexture(), mBloomIterations,
+			mBloomStrength * mAmplitude0, mBloomStrength * mAmplitude1 );
 	heartOutput.setFlipped();
 	gl::draw( heartOutput, getWindowBounds() );
 
 	if ( mDrawDisplace )
 	{
+		Vec2f pos( getWindowWidth() * .8f, 0.f );
+		Vec2f posStep( 0.f, getWindowHeight() * .2f );
+		Vec2f labelOffset( getWindowWidth() * .005f, getWindowHeight() * .01f );
+
 		gl::color( Color::white() );
 		const gl::Texture displaceMap = mHeart.getDisplacementTexture();
-		gl::draw( displaceMap, Rectf( getWindowBounds() ) * .2f + Vec2f( getWindowWidth() * .8f, 0.f ) );
+		gl::draw( displaceMap, Rectf( getWindowBounds() ) * .2f + pos );
+		gl::drawString( "displace", pos + labelOffset );
+
+		pos += posStep;
 		const gl::Texture normalMap = mHeart.getNormalTexture();
-		gl::draw( normalMap, Rectf( getWindowBounds() ) * .2f + Vec2f( getWindowWidth() * .8f, getWindowHeight() * .2f ) );
+		gl::draw( normalMap, Rectf( getWindowBounds() ) * .2f + pos );
+		gl::drawString( "normals", pos + labelOffset );
+
+		pos += posStep;
+		const gl::Texture bloomMap = mHeartBloom.getStrenghtTexture();
+		gl::draw( bloomMap, Rectf( getWindowBounds() ) * .2f + pos );
+		gl::drawString( "bloom", pos + labelOffset );
 	}
 
 	params::InterfaceGl::draw();

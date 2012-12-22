@@ -18,13 +18,20 @@ void main()
 
 	gl_FragColor.a = 1.0;
 
+/*
+	vec3 diffuseMaterial = gl_Color.rgb * gl_FrontMaterial.diffuse.rgb;
+	if ( textureEnabled )
+		diffuseMaterial *= texture2D ( tex, gl_TexCoord[0].st ).rgb;
+	gl_FragColor.rgb = diffuseMaterial;
+*/
+
 	if ( lambertFactor > 0.0 )
 	{
 		vec3 diffuseMaterial = gl_Color.rgb * gl_FrontMaterial.diffuse.rgb;
 		if ( textureEnabled )
 			diffuseMaterial *= texture2D ( tex, gl_TexCoord[0].st ).rgb;
 
-		float specStrenght = 0.5; //gl_FrontMaterial.shininess;
+		float specStrenght = 0.1; //gl_FrontMaterial.shininess;
 		vec3 reflect = normalize( 2.0 * lambertFactor * normal - light );
 		//diffuseLight = gl_LightSource[0].diffuse;
 		float shininess = pow( max( dot( reflect, -eye ), 0.0 ), 8.0 ) * specStrenght;
