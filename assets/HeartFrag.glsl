@@ -24,7 +24,7 @@ void main()
 		if ( textureEnabled )
 			diffuseMaterial *= texture2D ( tex, gl_TexCoord[0].st ).rgb;
 
-		float specStrenght = 0.9; //gl_FrontMaterial.shininess;
+		float specStrenght = 0.5; //gl_FrontMaterial.shininess;
 		vec3 reflect = normalize( 2.0 * lambertFactor * normal - light );
 		//diffuseLight = gl_LightSource[0].diffuse;
 		float shininess = pow( max( dot( reflect, -eye ), 0.0 ), 8.0 ) * specStrenght;

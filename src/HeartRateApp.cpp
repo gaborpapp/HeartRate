@@ -17,6 +17,7 @@
 
 #include "cinder/app/AppBasic.h"
 #include "cinder/gl/gl.h"
+#include "cinder/gl/Fbo.h"
 #include "cinder/gl/Light.h"
 #include "cinder/params/Params.h"
 
@@ -25,6 +26,7 @@
 #include "cinder/Cinder.h"
 
 #include "HeartShape.h"
+#include "KawaseBloom.h"
 #include "PParams.h"
 
 
@@ -56,12 +58,27 @@ class HeartRateApp : public AppBasic
 
 		shared_ptr< gl::Light > mLight;
 
+		static const int FBO_WIDTH;
+		static const int FBO_HEIGHT;
+		gl::Fbo mFbo;
+
+		mndl::gl::fx::KawaseBloom mBloom;
+		int mBloomIterations;
+		float mBloomStrength;
+
 		params::PInterfaceGl mParams;
 
 		// debug
 		float mFps;
 		bool mDrawDisplace;
+		float mBpm0, mBpm1; // heart rate
+		float mAmplitude0, mAmplitude1; // heart amplitude
+
+		void updateSignal();
 };
+
+const int HeartRateApp::FBO_WIDTH = 1024;
+const int HeartRateApp::FBO_HEIGHT = 768;
 
 void HeartRateApp::prepareSettings( Settings *settings )
 {
@@ -79,7 +96,13 @@ void HeartRateApp::setup()
 	mParams.addPersistentSizeAndPosition();
 
 	// heart shape
-	mParams.addText( "Heart shape" );
+	mParams.addPersistentParam( "Bpm left", &mBpm0, 60.f, "min=40 max=110 step=.1" );
+	mParams.addPersistentParam( "Bpm right", &mBpm1, 60.f, "min=40 max=110 step=.1" );
+
+	mParams.addSeparator();
+	mParams.addPersistentParam( "Bloom iterations", &mBloomIterations, 8, "min=0 max=10" );
+	mParams.addPersistentParam( "Bloom strength", &mBloomStrength, 0.2f, "min=0 max=1 step=0.05" );
+
 	// debug
 	mFps = 0;
 	mParams.addParam( "Fps", &mFps, "", false );
@@ -88,12 +111,16 @@ void HeartRateApp::setup()
 
 	mHeart.setup();
 
+	// heart fbo
+	mFbo = gl::Fbo( FBO_WIDTH, FBO_HEIGHT );
+	mBloom = mndl::gl::fx::KawaseBloom( FBO_WIDTH, FBO_HEIGHT );
+
     // set up the arcball
     mArcball = Arcball( getWindowSize() );
     mArcball.setRadius( getWindowWidth() * 0.5f );
 
 	// set up the camera
-	mCamera.setPerspective( 60.f, getWindowAspectRatio(), 0.1f, 1000.0f );
+	mCamera.setPerspective( 60.f, mFbo.getAspectRatio(), 0.1f, 1000.0f );
 	mCamera.lookAt( Vec3f( 0.f, -30.f, -200.f ), Vec3f( 0.0f, -30.f, 0.0f ) );
 
 	// light
@@ -110,9 +137,30 @@ void HeartRateApp::shutdown()
 	params::PInterfaceGl::save();
 }
 
+void HeartRateApp::updateSignal()
+{
+	static double lastSeconds = 0.;
+	static double phase0 = 0.;
+	static double phase1 = 0.;
+
+	double seconds = getElapsedSeconds();
+	double delta = seconds - lastSeconds;
+	lastSeconds = seconds;
+
+	float s = M_PI * delta * getFrameRate() / 60.f;
+	phase0 += s * mBpm0 / 60.f;
+	phase1 += s * mBpm1 / 60.f;
+
+	mAmplitude0 = math< float >::abs( math< float >::cos( phase0 ) );
+	mAmplitude1 = math< float >::abs( math< float >::cos( phase1 ) );
+	mHeart.setAmplitudes( mAmplitude0, mAmplitude1 );
+}
+
 void HeartRateApp::update()
 {
 	mLight->update( mCamera );
+
+	updateSignal();
 	mHeart.update();
 
 	mFps = getAverageFps();
@@ -120,9 +168,11 @@ void HeartRateApp::update()
 
 void HeartRateApp::draw()
 {
+	mFbo.bindFramebuffer();
+
 	gl::clear( Color::black() );
 
-	gl::setViewport( getWindowBounds() );
+	gl::setViewport( mFbo.getBounds() );
 	gl::setMatrices( mCamera );
 	gl::multModelView( mArcball.getQuat() );
 	gl::multModelView( Matrix44f::createRotation( Vec3f( 0, M_PI, 0 ) ) );
@@ -130,13 +180,21 @@ void HeartRateApp::draw()
 	mLight->enable();
 	mHeart.draw();
 	mLight->disable();
+	mFbo.unbindFramebuffer();
+
+	gl::setViewport( getWindowBounds() );
+	gl::setMatricesWindow( getWindowSize() );
+
+	gl::disableDepthRead();
+	gl::disableDepthWrite();
+
+	gl::color( Color::white() );
+	gl::Texture heartOutput = mBloom.process( mFbo.getTexture(), mBloomIterations, mBloomStrength * mAmplitude0 );
+	heartOutput.setFlipped();
+	gl::draw( heartOutput, getWindowBounds() );
 
 	if ( mDrawDisplace )
 	{
-		gl::disableDepthRead();
-		gl::disableDepthWrite();
-		gl::setMatricesWindow( getWindowSize() );
-
 		gl::color( Color::white() );
 		const gl::Texture displaceMap = mHeart.getDisplacementTexture();
 		gl::draw( displaceMap, Rectf( getWindowBounds() ) * .2f + Vec2f( getWindowWidth() * .8f, 0.f ) );
@@ -167,7 +225,6 @@ void HeartRateApp::mouseDrag( MouseEvent event )
 
 void HeartRateApp::resize( ResizeEvent event )
 {
-	mCamera.setPerspective( 60.f, event.getAspectRatio(), 0.1f, 1000.0f );
 }
 
 CINDER_APP_BASIC( HeartRateApp, RendererGl( RendererGl::AA_NONE ) )

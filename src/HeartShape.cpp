@@ -50,11 +50,14 @@ void HeartShape::setup()
 	//mParams.addPersistentParam( "Active color", &mColorActive, ColorA::hexA( 0xffab0706 ) );
 	mParams.addPersistentParam( "Active color", &mColorActive, ColorA::white() );
 	mParams.addPersistentParam( "Inactive color", &mColorInactive, ColorA::hexA( 0xff862c2c ) );
-	mParams.addPersistentParam( "Displace scale", &mDisplaceScale, 15.f, "min=0 max=20 step=.1" );
+	mParams.addPersistentParam( "Displace scale", &mDisplaceScale, 15.f, "min=0 max=50 step=.1" );
 	//mParams.addPersistentParam( "Normal amlitude", &mNormalAmplitude, 10.f, "min=1 max=50" );
 	mParams.addPersistentParam( "Texture enable", &mTextureEnabled, true );
 	mParams.addPersistentParam( "Heart enable", &mHeartEnabled, true );
 	mParams.addPersistentParam( "Normals enable", &mNormalsEnabled, false );
+	mParams.addSeparator();
+	mDisharmony = 0.f;
+	mParams.addParam( "Disharmony", &mDisharmony, "min=0 max=1 step=.05" );
 
 	calculateTangents();
 	setupVbo();
@@ -136,14 +139,24 @@ void HeartShape::setupVbo()
 	mShader.unbind();
 }
 
+void HeartShape::setAmplitudes( float amp0, float amp1 )
+{
+	mAmplitude0 = amp0;
+	mAmplitude1 = amp1;
+}
+
 void HeartShape::update()
 {
 	mDispMapFbo.bindFramebuffer();
 	gl::setViewport( mDispMapFbo.getBounds() );
 	gl::setMatricesWindow( mDispMapFbo.getSize(), false );
 	mDispMapShader.bind();
-	mDispMapShader.uniform( "time", static_cast< float >( app::getElapsedSeconds() ) );
+	mDispMapShader.uniform( "time", float( app::getElapsedSeconds() ) ); // FIXME: needed for distortion only
 	mDispMapShader.uniform( "amplitude", 1.0f );
+	mDispMapShader.uniform( "amp0", mAmplitude0 );
+	mDispMapShader.uniform( "amp1", mAmplitude1 );
+	mDispMapShader.uniform( "disharmony", mDisharmony ); // FIXME: needed for distortion only
+
 	gl::drawSolidRect( mDispMapFbo.getBounds() );
 	mDispMapShader.unbind();
 	mDispMapFbo.unbindFramebuffer();

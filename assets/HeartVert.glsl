@@ -11,7 +11,7 @@ varying vec3 eyeVec;
 void main()
 {
 	gl_FrontColor = gl_Color;        
-	gl_TexCoord[0] =  gl_MultiTexCoord0;
+	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
 
 	vec4 color = texture2D( displacement, gl_MultiTexCoord0.st );
 	float offset = color.r * scale;

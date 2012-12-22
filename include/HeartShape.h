@@ -24,6 +24,8 @@ class HeartShape
 		void update();
 		void draw();
 
+		void setAmplitudes( float amp0, float amp1 );
+
 		const ci::gl::Texture &getDisplacementTexture() { return mDispMapFbo.getTexture(); }
 		const ci::gl::Texture &getNormalTexture() { return mNormalMapFbo.getTexture(); }
 
@@ -36,6 +38,11 @@ class HeartShape
 		bool mHeartEnabled;
 		bool mNormalsEnabled;
 		ci::Vec2i mFboSize;
+
+		float mAmplitude0;
+		float mAmplitude1;
+
+		float mDisharmony;
 
 		ci::TriMesh mTriMesh;
 
