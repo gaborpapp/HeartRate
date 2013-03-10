@@ -13,7 +13,7 @@
 #include "cinder/TriMesh.h"
 #include "cinder/Vector.h"
 
-#include "PParams.h"
+#include "mndlkit/params/PParams.h"
 
 class HeartShape
 {
@@ -62,6 +62,6 @@ class HeartShape
 		ci::gl::Fbo mNormalMapFbo;
 		ci::gl::GlslProg mNormalMapShader;
 
-		ci::params::PInterfaceGl mParams;
+		mndl::kit::params::PInterfaceGl mParams;
 };
 

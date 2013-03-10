@@ -2,11 +2,13 @@ env = Environment()
 
 env['APP_TARGET'] = 'HeartRateApp'
 env['APP_SOURCES'] = ['HeartRateApp.cpp', 'HeartBloom.cpp', 'HeartShape.cpp',
-		'KawaseHBloom.cpp', 'PParams.cpp']
+		'KawaseHBloom.cpp']
 env['RESOURCES'] = []
 env['ASSETS'] = ['heart.obj', 'HeartVert.glsl', 'HeartFrag.glsl', 'test.png',
 		'DisplaceVert.glsl', 'DisplaceFrag.glsl',
 		'NormalVert.glsl', 'NormalFrag.glsl']
 env['DEBUG'] = 0
+
+env = SConscript('../../../blocks/MndlKit/scons/SConscript', exports = 'env')
 
 SConscript('../../../scons/SConscript', exports = 'env')

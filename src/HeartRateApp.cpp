@@ -27,7 +27,8 @@
 
 #include "HeartBloom.h"
 #include "HeartShape.h"
-#include "PParams.h"
+
+#include "mndlkit/params/PParams.h"
 
 
 using namespace ci;
@@ -45,7 +46,7 @@ class HeartRateApp : public AppBasic
 		void mouseDown( MouseEvent event );
 		void mouseDrag( MouseEvent event );
 
-		void resize( ResizeEvent event );
+		void resize();
 
 		void update();
 		void draw();
@@ -66,7 +67,7 @@ class HeartRateApp : public AppBasic
 		int mBloomIterations;
 		float mBloomStrength;
 
-		params::PInterfaceGl mParams;
+		mndl::kit::params::PInterfaceGl mParams;
 
 		// debug
 		float mFps;
@@ -90,9 +91,9 @@ void HeartRateApp::setup()
 	gl::disableVerticalSync();
 
 	// params
-	params::PInterfaceGl::load( "params.xml" );
+	mndl::kit::params::PInterfaceGl::load( "params.xml" );
 
-	mParams = params::PInterfaceGl( "Parameters", Vec2i( 300, 120 ) );
+	mParams = mndl::kit::params::PInterfaceGl( "Parameters", Vec2i( 300, 120 ) );
 	mParams.addPersistentSizeAndPosition();
 
 	// heart shape
@@ -134,7 +135,7 @@ void HeartRateApp::setup()
 
 void HeartRateApp::shutdown()
 {
-	params::PInterfaceGl::save();
+	mndl::kit::params::PInterfaceGl::save();
 }
 
 void HeartRateApp::updateSignal()
@@ -217,7 +218,7 @@ void HeartRateApp::draw()
 		gl::drawString( "bloom", pos + labelOffset );
 	}
 
-	params::InterfaceGl::draw();
+	mndl::kit::params::PInterfaceGl::draw();
 }
 
 void HeartRateApp::keyDown( KeyEvent event )
@@ -238,7 +239,7 @@ void HeartRateApp::mouseDrag( MouseEvent event )
 	mArcball.mouseDrag( event.getPos() );
 }
 
-void HeartRateApp::resize( ResizeEvent event )
+void HeartRateApp::resize()
 {
 }
 
