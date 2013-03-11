@@ -35,6 +35,7 @@ class HeartShape
 		float mDisplaceScale;
 		//float mNormalAmplitude;
 		bool m3dEnabled;
+		bool mFlatShadingEnabled;
 		bool mTextureEnabled;
 		bool mHeartEnabled;
 		bool mNormalsEnabled;

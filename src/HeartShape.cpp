@@ -53,6 +53,7 @@ void HeartShape::setup()
 	mParams.addPersistentParam( "Displace scale", &mDisplaceScale, 15.f, "min=0 max=50 step=.1" );
 	//mParams.addPersistentParam( "Normal amlitude", &mNormalAmplitude, 10.f, "min=1 max=50" );
 	mParams.addPersistentParam( "3d enable", &m3dEnabled, true );
+	//mParams.addPersistentParam( "Flat shading enable", &mFlatShadingEnabled, false );
 	mParams.addPersistentParam( "Texture enable", &mTextureEnabled, false );
 	mParams.addPersistentParam( "Heart enable", &mHeartEnabled, true );
 	mParams.addPersistentParam( "Normals enable", &mNormalsEnabled, false );
@@ -192,6 +193,7 @@ void HeartShape::draw()
 		mShader.uniform( "tex", 0 );
 		mShader.uniform( "textureEnabled", mTextureEnabled );
 		mShader.uniform( "no3dEnabled", !m3dEnabled );
+		//mShader.uniform( "flat", mFlatShadingEnabled );
 		mMaterial.setDiffuse( mColorActive );
 		mMaterial.apply();
 		gl::color( Color::white() );
