@@ -36,7 +36,7 @@ void HeartShape::setup()
 	}
 
 	mMaterial = gl::Material( Color::gray( .0 ), Color::gray( .5 ), Color::white(), 50.f );
-	mTexture = loadImage( app::loadAsset( "model/test.png" ) );
+	mTexture = loadImage( app::loadAsset( "model/heart.png" ) );
 
 	gl::Fbo::Format format;
 	format.setColorInternalFormat( GL_RGB32F_ARB );

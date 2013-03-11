@@ -4,8 +4,9 @@ env['APP_TARGET'] = 'HeartRateApp'
 env['APP_SOURCES'] = ['HeartRateApp.cpp', 'HeartBloom.cpp', 'HeartShape.cpp',
 		'KawaseHBloom.cpp']
 env['RESOURCES'] = []
-env['ASSETS'] = ['model/heart.obj', 'shaders/HeartVert.glsl', 'shaders/HeartFrag.glsl',
-		'model/test.png', 'shaders/DisplaceVert.glsl', 'shaders/DisplaceFrag.glsl',
+env['ASSETS'] = ['model/heart.obj', 'model/heart.png',
+		'shaders/HeartVert.glsl', 'shaders/HeartFrag.glsl',
+		'shaders/DisplaceVert.glsl', 'shaders/DisplaceFrag.glsl',
 		'shaders/NormalVert.glsl', 'shaders/NormalFrag.glsl',
 		'capture/*.xml']
 env['DEBUG'] = 0
