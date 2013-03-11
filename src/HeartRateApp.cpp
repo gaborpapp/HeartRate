@@ -275,6 +275,8 @@ void HeartRateApp::draw()
 		gl::drawString( "bloom", pos + labelOffset );
 	}
 
+	mPulseSensorManager.draw();
+
 	mndl::kit::params::PInterfaceGl::draw();
 }
 
@@ -320,11 +322,17 @@ void HeartRateApp::keyDown( KeyEvent event )
 
 void HeartRateApp::mouseDown( MouseEvent event )
 {
+	if( mPulseSensorManager.mouseDown( event ) )
+		return;
+
 	mArcball.mouseDown( event.getPos() );
 }
 
 void HeartRateApp::mouseDrag( MouseEvent event )
 {
+	if( mPulseSensorManager.mouseDrag( event ) )
+		return;
+
 	mArcball.mouseDrag( event.getPos() );
 }
 

@@ -22,6 +22,9 @@
     <Filter Include="blocks\cinder-pulsesensor">
       <UniqueIdentifier>{d8d7835d-53c5-4041-9184-3a8126dc4cf1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="blocks\cinder-pulsesensor\monitor">
+      <UniqueIdentifier>{c710175f-1c47-449a-a5c1-fcb28e4d9d92}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\HeartBloom.cpp">
@@ -60,6 +63,15 @@
     <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\Util.cpp">
       <Filter>blocks\cinder-pulsesensor</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\monitor\Cardioid.cpp">
+      <Filter>blocks\cinder-pulsesensor\monitor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\monitor\Monitor.cpp">
+      <Filter>blocks\cinder-pulsesensor\monitor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\monitor\Section.cpp">
+      <Filter>blocks\cinder-pulsesensor\monitor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\HeartBloom.h">
@@ -97,6 +109,15 @@
     </ClInclude>
     <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\Util.h">
       <Filter>blocks\cinder-pulsesensor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\monitor\Cardioid.h">
+      <Filter>blocks\cinder-pulsesensor\monitor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\monitor\Monitor.h">
+      <Filter>blocks\cinder-pulsesensor\monitor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\monitor\Section.h">
+      <Filter>blocks\cinder-pulsesensor\monitor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

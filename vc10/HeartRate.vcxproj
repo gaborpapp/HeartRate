@@ -11,6 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\monitor\Cardioid.cpp" />
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\monitor\Monitor.cpp" />
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\monitor\Section.cpp" />
     <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\PulseSensor.cpp" />
     <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\PulseSensorManager.cpp" />
     <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\Recorder.cpp" />
@@ -26,6 +29,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\Listener.h" />
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\monitor\Cardioid.h" />
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\monitor\Monitor.h" />
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\monitor\Section.h" />
     <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\PulseSensor.h" />
     <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\PulseSensorManager.h" />
     <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\Recorder.h" />
