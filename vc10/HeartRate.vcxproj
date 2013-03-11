@@ -11,13 +11,32 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\PulseSensor.cpp" />
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\PulseSensorManager.cpp" />
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\Recorder.cpp" />
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\Sensor.cpp" />
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\SensorDevice.cpp" />
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\SensorFile.cpp" />
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\Util.cpp" />
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\MndlKit\src\PParams.cpp" />
+    <ClCompile Include="..\src\HeartBloom.cpp" />
     <ClCompile Include="..\src\HeartRateApp.cpp" />
     <ClCompile Include="..\src\HeartShape.cpp" />
-    <ClCompile Include="..\src\PParams.cpp" />
+    <ClCompile Include="..\src\KawaseHBloom.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\Listener.h" />
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\PulseSensor.h" />
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\PulseSensorManager.h" />
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\Recorder.h" />
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\Sensor.h" />
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\SensorDevice.h" />
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\SensorFile.h" />
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\Util.h" />
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\MndlKit\src\mndlkit\params\PParams.h" />
+    <ClInclude Include="..\include\HeartBloom.h" />
     <ClInclude Include="..\include\HeartShape.h" />
-    <ClInclude Include="..\include\PParams.h" />
+    <ClInclude Include="..\include\KawaseHBloom.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{27257FEF-9BF1-4F0B-9AF5-EB38E9B5E8EF}</ProjectGuid>
@@ -56,7 +75,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\include;$(CINDER_DIR)\include;$(BOOST_DIR);$(CINDER_DIR)\src\AntTweakBar;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\..\..\cinder_0.8.5\include;..\..\..\cinder_0.8.5\src\AntTweakBar;..\..\..\cinder_0.8.5\boost;..\..\..\cinder_0.8.5\blocks\mndlkit\src;..\..\..\cinder_0.8.5\blocks\cinder-pulsesensor\src</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>CURL_STATICLIB;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -68,7 +87,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>cinder_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(CINDER_DIR)\lib;$(CINDER_DIR)\lib\msw;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\cinder_0.8.5\lib;..\..\..\cinder_0.8.5\lib\msw;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -80,7 +99,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\include;$(CINDER_DIR)\include;$(BOOST_DIR);$(CINDER_DIR)\src\AntTweakBar;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\..\..\cinder_0.8.5\include;..\..\..\cinder_0.8.5\src\AntTweakBar;..\..\..\cinder_0.8.5\boost;..\..\..\cinder_0.8.5\blocks\mndlkit\src;..\..\..\cinder_0.8.5\blocks\cinder-pulsesensor\src</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>CURL_STATICLIB;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>
@@ -90,7 +109,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>cinder.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(CINDER_DIR)\lib;$(CINDER_DIR)\lib\msw;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\cinder_0.8.5\lib;..\..\..\cinder_0.8.5\lib\msw;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>

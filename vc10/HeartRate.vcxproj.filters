@@ -13,24 +13,90 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="blocks">
+      <UniqueIdentifier>{dff31ad9-7aa5-442c-aeec-81d3e03db736}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="blocks\mndlkit">
+      <UniqueIdentifier>{6314b63e-2897-4a0f-b171-9c5c3ca040fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="blocks\cinder-pulsesensor">
+      <UniqueIdentifier>{d8d7835d-53c5-4041-9184-3a8126dc4cf1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\HeartBloom.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\HeartRateApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\HeartShape.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\PParams.cpp">
+    <ClCompile Include="..\src\KawaseHBloom.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\MndlKit\src\PParams.cpp">
+      <Filter>blocks\mndlkit</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\PulseSensor.cpp">
+      <Filter>blocks\cinder-pulsesensor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\PulseSensorManager.cpp">
+      <Filter>blocks\cinder-pulsesensor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\Recorder.cpp">
+      <Filter>blocks\cinder-pulsesensor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\Sensor.cpp">
+      <Filter>blocks\cinder-pulsesensor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\SensorDevice.cpp">
+      <Filter>blocks\cinder-pulsesensor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\SensorFile.cpp">
+      <Filter>blocks\cinder-pulsesensor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\Util.cpp">
+      <Filter>blocks\cinder-pulsesensor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\HeartBloom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\HeartShape.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\PParams.h">
+    <ClInclude Include="..\include\KawaseHBloom.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\MndlKit\src\mndlkit\params\PParams.h">
+      <Filter>blocks\mndlkit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\Listener.h">
+      <Filter>blocks\cinder-pulsesensor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\PulseSensor.h">
+      <Filter>blocks\cinder-pulsesensor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\PulseSensorManager.h">
+      <Filter>blocks\cinder-pulsesensor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\Recorder.h">
+      <Filter>blocks\cinder-pulsesensor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\Sensor.h">
+      <Filter>blocks\cinder-pulsesensor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\SensorDevice.h">
+      <Filter>blocks\cinder-pulsesensor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\SensorFile.h">
+      <Filter>blocks\cinder-pulsesensor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\cinder_0.8.5\blocks\Cinder-PulseSensor\src\Util.h">
+      <Filter>blocks\cinder-pulsesensor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
