@@ -1,6 +1,7 @@
 uniform sampler2D tex;
 uniform sampler2D normalMap;
 uniform bool textureEnabled;
+uniform bool no3dEnabled;
 
 varying vec3 lightVec;
 varying vec3 eyeVec;
@@ -18,13 +19,14 @@ void main()
 
 	gl_FragColor.a = 1.0;
 
-/*
-	vec3 diffuseMaterial = gl_Color.rgb * gl_FrontMaterial.diffuse.rgb;
-	if ( textureEnabled )
-		diffuseMaterial *= texture2D ( tex, gl_TexCoord[0].st ).rgb;
-	gl_FragColor.rgb = diffuseMaterial;
-*/
-
+	if ( no3dEnabled )
+	{
+		vec3 diffuseMaterial = gl_Color.rgb * gl_FrontMaterial.diffuse.rgb;
+		if ( textureEnabled )
+			diffuseMaterial *= texture2D ( tex, gl_TexCoord[ 0 ].st ).rgb;
+		gl_FragColor.rgb = diffuseMaterial;
+	}
+	else
 	if ( lambertFactor > 0.0 )
 	{
 		vec3 diffuseMaterial = gl_Color.rgb * gl_FrontMaterial.diffuse.rgb;
@@ -40,5 +42,7 @@ void main()
 		gl_FragColor.rgb += vec3( shininess, shininess, shininess );
 	}
 	else
+	{
 		gl_FragColor.rgb = vec3( 0, 0, 0 );
+	}
 }

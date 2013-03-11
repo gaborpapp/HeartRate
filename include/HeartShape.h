@@ -34,6 +34,7 @@ class HeartShape
 		ci::ColorA mColorActive;
 		float mDisplaceScale;
 		//float mNormalAmplitude;
+		bool m3dEnabled;
 		bool mTextureEnabled;
 		bool mHeartEnabled;
 		bool mNormalsEnabled;

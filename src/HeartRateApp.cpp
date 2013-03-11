@@ -25,11 +25,11 @@
 #include "cinder/Camera.h"
 #include "cinder/Cinder.h"
 
-#include "HeartBloom.h"
-#include "HeartShape.h"
-
 #include "mndlkit/params/PParams.h"
 
+#include "HeartBloom.h"
+#include "HeartShape.h"
+#include "PulseSensorManager.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -69,11 +69,21 @@ class HeartRateApp : public AppBasic
 
 		mndl::kit::params::PInterfaceGl mParams;
 
+		HeartRate::PulseSensorManager mPulseSensorManager;
+		void heartbeatCallback0( int data );
+		void heartbeatCallback1( int data );
+
 		// debug
 		float mFps;
 		bool mDrawDisplace;
+		/*
 		float mBpm0, mBpm1; // heart rate
-		float mAmplitude0, mAmplitude1; // heart amplitude
+		*/
+		float mAmplitude0, mAmplitude1; // heart amplitude increased by inflation in every frame
+		float mInflation0, mInflation1; // current inflation
+		float mMaxInflation0, mMaxInflation1; // maximum inflation on heartbeat
+		float mInflationDamping0, mInflationDamping1; // inflation damping per frame
+		float mDamping0, mDamping1; // heart amplitude damping per frame
 
 		void updateSignal();
 };
@@ -93,16 +103,28 @@ void HeartRateApp::setup()
 	// params
 	mndl::kit::params::PInterfaceGl::load( "params.xml" );
 
-	mParams = mndl::kit::params::PInterfaceGl( "Parameters", Vec2i( 300, 120 ) );
+	mParams = mndl::kit::params::PInterfaceGl( "Parameters", Vec2i( 300, 400 ) );
 	mParams.addPersistentSizeAndPosition();
 
 	// heart shape
+	/*
 	mParams.addPersistentParam( "Bpm left", &mBpm0, 60.f, "min=0 max=180 step=.1" );
 	mParams.addPersistentParam( "Bpm right", &mBpm1, 60.f, "min=0 max=180 step=.1" );
+	*/
+	mAmplitude0 = 0.f;
+	mInflation0 = 0.f;
+	mParams.addPersistentParam( "Maximum Inflation left", &mMaxInflation0, .5f, "min=0.001 max=1.0 step=.001" );
+	mParams.addPersistentParam( "Inflation damping left", &mInflationDamping0, .5f, "min=0 max=1 step=.001" );
+	mParams.addPersistentParam( "Damping left", &mDamping0, .98f, "min=0 max=1 step=.001" );
+	mAmplitude1 = 0.f;
+	mInflation1 = 0.f;
+	mParams.addPersistentParam( "Maximum Inflation right", &mMaxInflation1, .5f, "min=0.001 max=1.0 step=.001" );
+	mParams.addPersistentParam( "Inflation damping right", &mInflationDamping1, .5f, "min=0 max=1 step=.001" );
+	mParams.addPersistentParam( "Damping right", &mDamping1, .98f, "min=0 max=1 step=.001" );
 
 	mParams.addSeparator();
 	mParams.addPersistentParam( "Bloom iterations", &mBloomIterations, 8, "min=0 max=10" );
-	mParams.addPersistentParam( "Bloom strength", &mBloomStrength, 0.9f, "min=0 max=5 step=0.005" );
+	mParams.addPersistentParam( "Bloom strength", &mBloomStrength, 0.4f, "min=0 max=5 step=0.005" );
 
 	// debug
 	mFps = 0;
@@ -131,6 +153,13 @@ void HeartRateApp::setup()
 	mLight->setDirection( Vec3f( -1, -1, -1 ) );
 	//mLight->setPosition( Vec3f::one() * -1.0f );
 	mLight->setSpecular( ColorA::white() );
+
+	// pulsesensor
+	mPulseSensorManager.setup();
+	mPulseSensorManager.addCallback< HeartRateApp >( 0, HeartRate::PulseSensor::MT_BeatPauseTime,
+														&HeartRateApp::heartbeatCallback0, this );
+	mPulseSensorManager.addCallback< HeartRateApp >( 1, HeartRate::PulseSensor::MT_BeatPauseTime,
+														&HeartRateApp::heartbeatCallback1, this );
 }
 
 void HeartRateApp::shutdown()
@@ -138,6 +167,7 @@ void HeartRateApp::shutdown()
 	mndl::kit::params::PInterfaceGl::save();
 }
 
+#if 0
 void HeartRateApp::updateSignal()
 {
 	static double lastSeconds = 0.;
@@ -156,6 +186,20 @@ void HeartRateApp::updateSignal()
 	mAmplitude1 = math< float >::clamp( math< float >::sin( phase1 ) );
 	mHeart.setAmplitudes( mAmplitude0, mAmplitude1 );
 }
+#endif
+
+void HeartRateApp::updateSignal()
+{
+	mAmplitude0 += mInflation0;
+	mInflation0 *= mInflationDamping0;
+	mAmplitude0 *= mDamping0;
+
+	mAmplitude1 += mInflation1;
+	mInflation1 *= mInflationDamping1;
+	mAmplitude1 *= mDamping1;
+
+	mHeart.setAmplitudes( mAmplitude0, mAmplitude1 );
+}
 
 void HeartRateApp::update()
 {
@@ -165,6 +209,17 @@ void HeartRateApp::update()
 	mHeart.update();
 
 	mFps = getAverageFps();
+	mPulseSensorManager.update();
+}
+
+void HeartRateApp::heartbeatCallback0( int data )
+{
+	mInflation0 = mMaxInflation0;
+}
+
+void HeartRateApp::heartbeatCallback1( int data )
+{
+	mInflation1 = mMaxInflation1;
 }
 
 void HeartRateApp::draw()
@@ -186,6 +241,7 @@ void HeartRateApp::draw()
 	gl::setViewport( getWindowBounds() );
 	gl::setMatricesWindow( getWindowSize() );
 
+	gl::clear();
 	gl::disableDepthRead();
 	gl::disableDepthWrite();
 
@@ -194,7 +250,8 @@ void HeartRateApp::draw()
 	gl::Texture heartOutput = mHeartBloom.process( mFbo.getTexture(), mBloomIterations,
 			mBloomStrength * mAmplitude0, mBloomStrength * mAmplitude1 );
 	heartOutput.setFlipped();
-	gl::draw( heartOutput, getWindowBounds() );
+	Area outputArea = Area::proportionalFit( heartOutput.getBounds(), getWindowBounds(), true, true );
+	gl::draw( heartOutput, outputArea );
 
 	if ( mDrawDisplace )
 	{

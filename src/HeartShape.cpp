@@ -17,18 +17,18 @@ HeartShape::HeartShape() :
 
 void HeartShape::setup()
 {
-	ObjLoader loader = ObjLoader( app::loadAsset( "heart.obj" ) );
+	ObjLoader loader = ObjLoader( app::loadAsset( "model/heart.obj" ) );
 	loader.load( &mTriMesh );
 	//mTriMesh.recalculateNormals();
 
 	try
 	{
-		mShader = gl::GlslProg( app::loadAsset( "HeartVert.glsl" ),
-								app::loadAsset( "HeartFrag.glsl" ) );
-		mDispMapShader = gl::GlslProg( app::loadAsset( "DisplaceVert.glsl" ),
-									   app::loadAsset( "DisplaceFrag.glsl" ) );
-		mNormalMapShader = gl::GlslProg( app::loadAsset( "NormalVert.glsl" ),
-										 app::loadAsset( "NormalFrag.glsl" ) );
+		mShader = gl::GlslProg( app::loadAsset( "shaders/HeartVert.glsl" ),
+								app::loadAsset( "shaders/HeartFrag.glsl" ) );
+		mDispMapShader = gl::GlslProg( app::loadAsset( "shaders/DisplaceVert.glsl" ),
+									   app::loadAsset( "shaders/DisplaceFrag.glsl" ) );
+		mNormalMapShader = gl::GlslProg( app::loadAsset( "shaders/NormalVert.glsl" ),
+										 app::loadAsset( "shaders/NormalFrag.glsl" ) );
 	}
 	catch ( const gl::GlslProgCompileExc &exc )
 	{
@@ -36,7 +36,7 @@ void HeartShape::setup()
 	}
 
 	mMaterial = gl::Material( Color::gray( .0 ), Color::gray( .5 ), Color::white(), 50.f );
-	mTexture = loadImage( app::loadAsset( "test.png" ) );
+	mTexture = loadImage( app::loadAsset( "model/test.png" ) );
 
 	gl::Fbo::Format format;
 	format.setColorInternalFormat( GL_RGB32F_ARB );
@@ -47,12 +47,13 @@ void HeartShape::setup()
 	mParams = mndl::kit::params::PInterfaceGl( "Heart", Vec2i( 300, 120 ), Vec2i( 326, 16 ) );
 	mParams.addPersistentSizeAndPosition();
 
-	//mParams.addPersistentParam( "Active color", &mColorActive, ColorA::hexA( 0xffab0706 ) );
-	mParams.addPersistentParam( "Active color", &mColorActive, ColorA::white() );
+	mParams.addPersistentParam( "Active color", &mColorActive, ColorA::hexA( 0xffab0706 ) );
+	//mParams.addPersistentParam( "Active color", &mColorActive, ColorA::white() );
 	mParams.addPersistentParam( "Inactive color", &mColorInactive, ColorA::hexA( 0xff862c2c ) );
 	mParams.addPersistentParam( "Displace scale", &mDisplaceScale, 15.f, "min=0 max=50 step=.1" );
 	//mParams.addPersistentParam( "Normal amlitude", &mNormalAmplitude, 10.f, "min=1 max=50" );
-	mParams.addPersistentParam( "Texture enable", &mTextureEnabled, true );
+	mParams.addPersistentParam( "3d enable", &m3dEnabled, true );
+	mParams.addPersistentParam( "Texture enable", &mTextureEnabled, false );
 	mParams.addPersistentParam( "Heart enable", &mHeartEnabled, true );
 	mParams.addPersistentParam( "Normals enable", &mNormalsEnabled, false );
 	mParams.addSeparator();
@@ -190,6 +191,7 @@ void HeartShape::draw()
 
 		mShader.uniform( "tex", 0 );
 		mShader.uniform( "textureEnabled", mTextureEnabled );
+		mShader.uniform( "no3dEnabled", !m3dEnabled );
 		mMaterial.setDiffuse( mColorActive );
 		mMaterial.apply();
 		gl::color( Color::white() );
