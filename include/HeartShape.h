@@ -64,6 +64,6 @@ class HeartShape
 		ci::gl::Fbo mNormalMapFbo;
 		ci::gl::GlslProg mNormalMapShader;
 
-		mndl::kit::params::PInterfaceGl mParams;
+		mndl::params::PInterfaceGl mParams;
 };
 

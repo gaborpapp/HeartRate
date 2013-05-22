@@ -67,7 +67,7 @@ class HeartRateApp : public AppBasic
 		int mBloomIterations;
 		float mBloomStrength;
 
-		mndl::kit::params::PInterfaceGl mParams;
+		mndl::params::PInterfaceGl mParams;
 
 		HeartRate::PulseSensorManager mPulseSensorManager;
 		void heartbeatCallback0( int data );
@@ -101,9 +101,9 @@ void HeartRateApp::setup()
 	gl::disableVerticalSync();
 
 	// params
-	mndl::kit::params::PInterfaceGl::load( "params.xml" );
+	mndl::params::PInterfaceGl::load( "params.xml" );
 
-	mParams = mndl::kit::params::PInterfaceGl( "Parameters", Vec2i( 300, 400 ) );
+	mParams = mndl::params::PInterfaceGl( "Parameters", Vec2i( 300, 400 ) );
 	mParams.addPersistentSizeAndPosition();
 
 	// heart shape
@@ -164,7 +164,7 @@ void HeartRateApp::setup()
 
 void HeartRateApp::shutdown()
 {
-	mndl::kit::params::PInterfaceGl::save();
+	mndl::params::PInterfaceGl::save();
 }
 
 #if 0
@@ -277,7 +277,7 @@ void HeartRateApp::draw()
 
 	mPulseSensorManager.draw();
 
-	mndl::kit::params::PInterfaceGl::draw();
+	mParams.draw();
 }
 
 void HeartRateApp::keyDown( KeyEvent event )
@@ -301,7 +301,7 @@ void HeartRateApp::keyDown( KeyEvent event )
 			break;
 
 		case KeyEvent::KEY_s:
-			mndl::kit::params::PInterfaceGl::showAllParams( !mParams.isVisible() );
+			mndl::params::PInterfaceGl::showAllParams( !mParams.isVisible() );
 			if ( isFullScreen() )
 			{
 				if ( mParams.isVisible() )

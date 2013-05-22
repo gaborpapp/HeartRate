@@ -44,7 +44,7 @@ void HeartShape::setup()
 	mDispMapFbo = gl::Fbo( mFboSize.x, mFboSize.y, format );
 	mNormalMapFbo = gl::Fbo( mFboSize.x, mFboSize.y, format );
 
-	mParams = mndl::kit::params::PInterfaceGl( "Heart", Vec2i( 300, 120 ), Vec2i( 326, 16 ) );
+	mParams = mndl::params::PInterfaceGl( "Heart", Vec2i( 300, 120 ), Vec2i( 326, 16 ) );
 	mParams.addPersistentSizeAndPosition();
 
 	mParams.addPersistentParam( "Active color", &mColorActive, ColorA::hexA( 0xffab0706 ) );
@@ -216,5 +216,9 @@ void HeartShape::draw()
 			gl::drawVector( v[ i ] + n[ i ], v[ i ] + n[ i ] + 10 * mTangents[ i ] );
 		}
 	}
+
+	// FIXME: why is this not required? params are drawn irrespectively of
+	// calling their draw() explicitly.
+	//mParams.draw();
 }
 
