@@ -3,12 +3,12 @@
 #include <vector>
 
 #include "cinder/app/App.h"
-#include "cinder/gl/Fbo.h"
 #include "cinder/gl/GlslProg.h"
+#include "cinder/gl/Light.h"
 #include "cinder/gl/Material.h"
 #include "cinder/gl/Texture.h"
-#include "cinder/gl/Vbo.h"
 #include "cinder/Area.h"
+#include "cinder/Camera.h"
 #include "cinder/Color.h"
 #include "cinder/TriMesh.h"
 #include "cinder/Vector.h"
@@ -18,51 +18,36 @@
 class HeartShape
 {
 	public:
-		HeartShape();
-
 		void setup();
-		void update();
+		void update( const ci::Camera &camera );
 		void draw();
 
 		void setAmplitudes( float amp0, float amp1 );
 
-		const ci::gl::Texture &getDisplacementTexture() { return mDispMapFbo.getTexture(); }
-		const ci::gl::Texture &getNormalTexture() { return mNormalMapFbo.getTexture(); }
+		const ci::gl::Texture &getDisplacementTexture() { return mDisplaceTexture; }
 
 	protected:
-		ci::ColorA mColorInactive;
-		ci::ColorA mColorActive;
 		float mDisplaceScale;
-		//float mNormalAmplitude;
-		bool m3dEnabled;
-		bool mFlatShadingEnabled;
-		bool mTextureEnabled;
-		bool mHeartEnabled;
-		bool mNormalsEnabled;
-		ci::Vec2i mFboSize;
+		//bool mTextureEnabled;
 
 		float mAmplitude0;
 		float mAmplitude1;
 
-		float mDisharmony;
-
-		ci::TriMesh mTriMesh;
-
-		void calculateTangents();
-		std::vector< ci::Vec3f > mTangents;
-
-		void setupVbo();
-		ci::gl::VboMesh mVboMesh;
+		ci::TriMesh mModelHeart;
+		ci::TriMesh mModelHeartBeating;
 
 		ci::gl::GlslProg mShader;
 		ci::gl::Material mMaterial;
-		ci::gl::Texture mTexture;
 
-		ci::gl::Fbo mDispMapFbo;
-		ci::gl::GlslProg mDispMapShader;
+		ci::gl::Texture mDisplaceTexture;
 
-		ci::gl::Fbo mNormalMapFbo;
-		ci::gl::GlslProg mNormalMapShader;
+		ci::ColorA mLightAmbient, mLightDiffuse, mLightSpecular;
+		ci::Vec3f mLightDirection;
+
+		ci::ColorA mMaterialAmbient, mMaterialDiffuse, mMaterialSpecular;
+		float mMaterialShininess;
+
+		std::shared_ptr< ci::gl::Light > mLight;
 
 		mndl::params::PInterfaceGl mParams;
 };

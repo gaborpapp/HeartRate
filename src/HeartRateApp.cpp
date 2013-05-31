@@ -203,10 +203,8 @@ void HeartRateApp::updateSignal()
 
 void HeartRateApp::update()
 {
-	mLight->update( mCamera );
-
 	updateSignal();
-	mHeart.update();
+	mHeart.update( mCamera );
 
 	mFps = getAverageFps();
 	mPulseSensorManager.update();
@@ -263,11 +261,6 @@ void HeartRateApp::draw()
 		const gl::Texture displaceMap = mHeart.getDisplacementTexture();
 		gl::draw( displaceMap, Rectf( getWindowBounds() ) * .2f + pos );
 		gl::drawString( "displace", pos + labelOffset );
-
-		pos += posStep;
-		const gl::Texture normalMap = mHeart.getNormalTexture();
-		gl::draw( normalMap, Rectf( getWindowBounds() ) * .2f + pos );
-		gl::drawString( "normals", pos + labelOffset );
 
 		pos += posStep;
 		const gl::Texture bloomMap = mHeartBloom.getStrenghtTexture();
