@@ -57,8 +57,6 @@ class HeartRateApp : public AppBasic
 		Arcball mArcball;
 		CameraPersp mCamera;
 
-		shared_ptr< gl::Light > mLight;
-
 		static const int FBO_WIDTH;
 		static const int FBO_HEIGHT;
 		gl::Fbo mFbo;
@@ -146,14 +144,6 @@ void HeartRateApp::setup()
 	mCamera.setPerspective( 60.f, mFbo.getAspectRatio(), 0.1f, 1000.0f );
 	mCamera.lookAt( Vec3f( 0.f, -30.f, -200.f ), Vec3f( 0.0f, -30.f, 0.0f ) );
 
-	// light
-	mLight = shared_ptr< gl::Light >( new gl::Light( gl::Light::DIRECTIONAL, 0 ) );
-	mLight->setAmbient( ColorA::gray( .5 ) );
-	mLight->setDiffuse( ColorA::gray( .5 ) );
-	mLight->setDirection( Vec3f( -1, -1, -1 ) );
-	//mLight->setPosition( Vec3f::one() * -1.0f );
-	mLight->setSpecular( ColorA::white() );
-
 	// pulsesensor
 	mPulseSensorManager.setup();
 	mPulseSensorManager.addCallback< HeartRateApp >( 0, HeartRate::PulseSensor::MT_BeatPauseTime,
@@ -228,12 +218,10 @@ void HeartRateApp::draw()
 
 	gl::setViewport( mFbo.getBounds() );
 	gl::setMatrices( mCamera );
-	gl::multModelView( mArcball.getQuat() );
+	//gl::multModelView( mArcball.getQuat() );
 	gl::multModelView( Matrix44f::createRotation( Vec3f( 0, M_PI, 0 ) ) );
 
-	mLight->enable();
 	mHeart.draw();
-	mLight->disable();
 	mFbo.unbindFramebuffer();
 
 	gl::setViewport( getWindowBounds() );
