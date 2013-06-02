@@ -24,7 +24,6 @@
 #include "cinder/gl/Light.h"
 #include "cinder/params/Params.h"
 
-#include "cinder/Arcball.h"
 #include "cinder/Camera.h"
 #include "cinder/Cinder.h"
 #include "cinder/Font.h"
@@ -62,7 +61,6 @@ class HeartRateApp : public AppBasic
 	private:
 		HeartShape mHeart;
 
-		Arcball mArcball;
 		CameraPersp mCamera;
 
 		static const int FBO_WIDTH;
@@ -186,10 +184,6 @@ void HeartRateApp::setup()
 	// heart fbo
 	mFbo = gl::Fbo( FBO_WIDTH, FBO_HEIGHT );
 	mHeartBloom = HeartBloom( FBO_WIDTH, FBO_HEIGHT );
-
-    // set up the arcball
-    mArcball = Arcball( getWindowSize() );
-    mArcball.setRadius( getWindowWidth() * 0.5f );
 
 	// set up the camera
 	mCamera.setPerspective( 60.f, mFbo.getAspectRatio(), 0.1f, 1000.0f );
@@ -555,7 +549,6 @@ void HeartRateApp::drawHeart()
 
 	gl::setViewport( mFbo.getBounds() );
 	gl::setMatrices( mCamera );
-	//gl::multModelView( mArcball.getQuat() );
 	gl::multModelView( Matrix44f::createRotation( Vec3f( 0, M_PI, 0 ) ) );
 
 	mHeart.draw();
@@ -678,12 +671,10 @@ void HeartRateApp::keyDown( KeyEvent event )
 
 void HeartRateApp::mouseDown( MouseEvent event )
 {
-	mArcball.mouseDown( event.getPos() );
 }
 
 void HeartRateApp::mouseDrag( MouseEvent event )
 {
-	mArcball.mouseDrag( event.getPos() );
 }
 
 void HeartRateApp::resize()
