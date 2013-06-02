@@ -40,6 +40,11 @@
     <ClInclude Include="..\include\HeartShape.h" />
     <ClInclude Include="..\include\KawaseHBloom.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\include;..\..\..\cinder_0.8.5\include;..\..\..\cinder_0.8.5\src\AntTweakBar;..\..\..\cinder_0.8.5\boost;..\..\..\cinder_0.8.5\blocks\mndlkit\src;..\..\..\cinder_0.8.5\blocks\cinder-pulsesensor\src</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{27257FEF-9BF1-4F0B-9AF5-EB38E9B5E8EF}</ProjectGuid>
     <RootNamespace>quickTime</RootNamespace>
