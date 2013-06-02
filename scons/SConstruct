@@ -3,10 +3,9 @@ env = Environment()
 env['APP_TARGET'] = 'HeartRateApp'
 env['APP_SOURCES'] = ['HeartRateApp.cpp', 'HeartBloom.cpp', 'HeartShape.cpp',
 		'KawaseHBloom.cpp']
-env['RESOURCES'] = []
-env['ASSETS'] = ['model/heart6.obj', 'model/heart.png',
-		'shaders/PhongDirectional.frag', 'shaders/PhongDirectional.vert',
-		'capture/*.xml']
+env['RESOURCES'] = ['shaders/PhongDirectional.frag', 'shaders/PhongDirectional.vert',
+		'shaders/Pulse.vert', 'shaders/Pulse.frag']
+env['ASSETS'] = ['model/heart6.obj', 'capture/*.xml']
 env['DEBUG'] = 0
 
 env = SConscript('../../../blocks/Cinder-PulseSensor/scons/SConscript', exports = 'env')

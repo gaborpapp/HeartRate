@@ -6,6 +6,7 @@
 #include "cinder/ObjLoader.h"
 
 #include "HeartShape.h"
+#include "Resources.h"
 
 using namespace ci;
 using namespace std;
@@ -17,16 +18,16 @@ void HeartShape::setup()
 
 	try
 	{
-		mShader = gl::GlslProg( app::loadAsset( "shaders/PhongDirectional.vert" ),
-								app::loadAsset( "shaders/PhongDirectional.frag" ) );
+		mShader = gl::GlslProg( app::loadResource( RES_PHONG_DIRECTIONAL_VERT ),
+								app::loadResource( RES_PHONG_DIRECTIONAL_FRAG ) );
 	}
 	catch ( const gl::GlslProgCompileExc &exc )
 	{
 		app::console() << exc.what() << endl;
 	}
-	catch ( const app::AssetLoadExc &exc )
+	catch ( const app::ResourceLoadExc &exc )
 	{
-		app::console() << "Could not find asset: " << exc.what() << endl;
+		app::console() << exc.what() << endl;
 	}
 
 	mMaterial = gl::Material( Color::gray( .0 ), Color::gray( .5 ), Color::white(), 50.f );
@@ -35,7 +36,7 @@ void HeartShape::setup()
 	mParams = mndl::params::PInterfaceGl( "Heart", Vec2i( 300, 120 ), Vec2i( 326, 16 ) );
 	mParams.addPersistentSizeAndPosition();
 
-	mParams.addPersistentParam( "Displace scale", &mDisplaceScale, 15.f, "min=0 max=50 step=.1" );
+	mParams.addPersistentParam( "Displace scale", &mDisplaceScale, 5.f, "min=0 max=50 step=.1" );
 	mParams.addSeparator();
 
 	mParams.addPersistentParam( "Light direction", &mLightDirection,

@@ -18,6 +18,7 @@
 #include "cinder/app/AppBasic.h"
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Fbo.h"
+#include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Light.h"
 #include "cinder/params/Params.h"
 
@@ -30,6 +31,7 @@
 #include "HeartBloom.h"
 #include "HeartShape.h"
 #include "PulseSensorManager.h"
+#include "Resources.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -84,14 +86,17 @@ class HeartRateApp : public AppBasic
 		float mDamping0, mDamping1; // heart amplitude damping per frame
 
 		void updateSignal();
+		void drawInfo();
+
+		gl::GlslProg mPulseShader;
 };
 
-const int HeartRateApp::FBO_WIDTH = 1024;
-const int HeartRateApp::FBO_HEIGHT = 768;
+const int HeartRateApp::FBO_WIDTH = 1280;
+const int HeartRateApp::FBO_HEIGHT = 720;
 
 void HeartRateApp::prepareSettings( Settings *settings )
 {
-	settings->setWindowSize( 1024, 768 );
+	settings->setWindowSize( 1280, 720 );
 }
 
 void HeartRateApp::setup()
@@ -122,7 +127,7 @@ void HeartRateApp::setup()
 
 	mParams.addSeparator();
 	mParams.addPersistentParam( "Bloom iterations", &mBloomIterations, 8, "min=0 max=10" );
-	mParams.addPersistentParam( "Bloom strength", &mBloomStrength, 0.4f, "min=0 max=5 step=0.005" );
+	mParams.addPersistentParam( "Bloom strength", &mBloomStrength, 0.3f, "min=0 max=5 step=0.005" );
 
 	// debug
 	mFps = 0;
@@ -150,6 +155,23 @@ void HeartRateApp::setup()
 														&HeartRateApp::heartbeatCallback0, this );
 	mPulseSensorManager.addCallback< HeartRateApp >( 1, HeartRate::PulseSensor::MT_BeatPauseTime,
 														&HeartRateApp::heartbeatCallback1, this );
+
+	try
+	{
+		mPulseShader = gl::GlslProg( app::loadResource( RES_PULSE_VERT ),
+									 app::loadResource( RES_PULSE_FRAG ) );
+		mPulseShader.bind();
+		mPulseShader.uniform( "txt", 0 );
+		mPulseShader.unbind();
+	}
+	catch ( const gl::GlslProgCompileExc &exc )
+	{
+		app::console() << exc.what() << endl;
+	}
+	catch ( const app::ResourceLoadExc &exc )
+	{
+		app::console() << exc.what() << endl;
+	}
 }
 
 void HeartRateApp::shutdown()
@@ -210,6 +232,42 @@ void HeartRateApp::heartbeatCallback1( int data )
 	mInflation1 = mMaxInflation1;
 }
 
+void HeartRateApp::drawInfo()
+{
+	gl::setViewport( getWindowBounds() );
+	gl::setMatricesWindow( getWindowSize() );
+
+	gl::disableDepthRead();
+	gl::disableDepthWrite();
+
+	gl::enableAlphaBlending();
+
+	gl::color( Color::white() );
+	Vec2f winSize( getWindowSize() );
+
+	// pulse textures
+	gl::Texture pulseTxt0 = mPulseSensorManager.getSensor( 0 ).getPulseTexture();
+	Rectf pulse0Rect( winSize * Vec2f( .05f, .75f ), winSize * Vec2f( .25f, .9f ) );
+	if ( mPulseShader )
+		mPulseShader.bind();
+	gl::draw( pulseTxt0, pulse0Rect );
+	if ( mPulseShader )
+		mPulseShader.unbind();
+
+	gl::Texture pulseTxt1 = mPulseSensorManager.getSensor( 1 ).getPulseTexture();
+	Rectf pulse1Rect( Vec2f( winSize.x - pulse0Rect.getX2(), pulse0Rect.getY1() ),
+					  Vec2f( winSize.x - pulse0Rect.getX1(), pulse0Rect.getY2() ) );
+	// flip horizontally
+	pulse1Rect.set( pulse1Rect.getX2(), pulse1Rect.getY1(),
+					pulse1Rect.getX1(), pulse1Rect.getY2() );
+	if ( mPulseShader )
+		mPulseShader.bind();
+	gl::draw( pulseTxt1, pulse1Rect );
+	if ( mPulseShader )
+		mPulseShader.unbind();
+	gl::disableAlphaBlending();
+}
+
 void HeartRateApp::draw()
 {
 	mFbo.bindFramebuffer();
@@ -255,6 +313,8 @@ void HeartRateApp::draw()
 		gl::draw( bloomMap, Rectf( getWindowBounds() ) * .2f + pos );
 		gl::drawString( "bloom", pos + labelOffset );
 	}
+
+	drawInfo();
 
 	mPulseSensorManager.draw();
 
