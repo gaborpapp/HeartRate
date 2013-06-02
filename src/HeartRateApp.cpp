@@ -613,7 +613,7 @@ void HeartRateApp::drawInfo()
 	else
 	{
 		arrowBox.setColor( mTextColor1 );
-		arrowBox.setText( "" );
+		arrowBox.setText( " " );
 	}
 	gl::draw( arrowBox.render(), pulse0DeltaPos + Vec2f( .3f * pulseDeltaBox.measure().x, 0.f )
 			+ arrowBox.measure() * Vec2f( 0, .5f ) );
@@ -635,7 +635,7 @@ void HeartRateApp::drawInfo()
 	else
 	{
 		arrowBox.setColor( mTextColor1 );
-		arrowBox.setText( "" );
+		arrowBox.setText( " " );
 	}
 	gl::draw( arrowBox.render(), pulse1DeltaPos + Vec2f( .3f * pulseDeltaBox.measure().x, 0.f )
 			+ arrowBox.measure() * Vec2f( 0, .5f ) );
