@@ -15,6 +15,8 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <boost/format.hpp>
+
 #include "cinder/app/AppBasic.h"
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Fbo.h"
@@ -26,7 +28,9 @@
 #include "cinder/Camera.h"
 #include "cinder/Cinder.h"
 #include "cinder/Font.h"
+#include "cinder/ImageIo.h"
 #include "cinder/Text.h"
+#include "cinder/Timeline.h"
 
 #include "mndlkit/params/PParams.h"
 
@@ -96,6 +100,7 @@ class HeartRateApp : public AppBasic
 
 		void updateSignal();
 		void updateStatistics();
+		void drawHeart();
 		void drawInfo();
 
 		float mFontSizeBig, mFontSizeMiddle, mFontSizeSmall, mFontSizeSmaller;
@@ -103,12 +108,26 @@ class HeartRateApp : public AppBasic
 
 		Font mFontBig, mFontMiddle, mFontSmall, mFontSmaller;
 
+		void initGame();
 		void startGame();
 
 		gl::GlslProg mPulseShader;
 
 		int mHarmony;
 		int mHarmony0, mHarmony1;
+
+		gl::Texture mRulesTxt;
+		Anim< float > mFade;
+		Anim< int > mCountdown;
+		int mCountdownDuration;
+
+		enum
+		{
+			STATE_RULES = 0,
+			STATE_GAME,
+			STATE_STATISTICS
+		};
+		int mState;
 };
 
 const int HeartRateApp::FBO_WIDTH = 1280;
@@ -134,13 +153,9 @@ void HeartRateApp::setup()
 	mParams.addPersistentParam( "Bpm left", &mBpm0, 60.f, "min=0 max=180 step=.1" );
 	mParams.addPersistentParam( "Bpm right", &mBpm1, 60.f, "min=0 max=180 step=.1" );
 	*/
-	mAmplitude0 = 0.f;
-	mInflation0 = 0.f;
 	mParams.addPersistentParam( "Maximum Inflation left", &mMaxInflation0, .5f, "min=0.001 max=1.0 step=.001" );
 	mParams.addPersistentParam( "Inflation damping left", &mInflationDamping0, .5f, "min=0 max=1 step=.001" );
 	mParams.addPersistentParam( "Damping left", &mDamping0, .98f, "min=0 max=1 step=.001" );
-	mAmplitude1 = 0.f;
-	mInflation1 = 0.f;
 	mParams.addPersistentParam( "Maximum Inflation right", &mMaxInflation1, .5f, "min=0.001 max=1.0 step=.001" );
 	mParams.addPersistentParam( "Inflation damping right", &mInflationDamping1, .5f, "min=0 max=1 step=.001" );
 	mParams.addPersistentParam( "Damping right", &mDamping1, .98f, "min=0 max=1 step=.001" );
@@ -163,6 +178,8 @@ void HeartRateApp::setup()
 	mParams.addPersistentParam( "Text color 0", &mTextColor0, Color( 1.f, 0.f, 0.f ) );
 	mParams.addPersistentParam( "Text color 1", &mTextColor1, Color::gray( .5 ) );
 	mParams.addPersistentParam( "Text color 2", &mTextColor2, Color( 0.f, 1.f, 0.f ) );
+	mParams.addSeparator();
+	mParams.addPersistentParam( "Countdown duration", &mCountdownDuration, 5 * 60, "min=10" );
 
 	mHeart.setup();
 
@@ -211,7 +228,23 @@ void HeartRateApp::setup()
 	mFontSmall = Font( app::loadResource( RES_FONT ), mFontSizeSmall );
 	mFontSmaller = Font( app::loadResource( RES_FONT ), mFontSizeSmall * .5f );
 
-	startGame();
+	try
+	{
+		mRulesTxt = loadImage( loadAsset( "gfx/rules.png" ) );
+	}
+	catch ( const app::AssetLoadExc &exc )
+	{
+		app::console() << exc.what() << endl;
+	}
+
+	mParams.addSeparator();
+	mParams.addButton( "Start game", std::bind( &HeartRateApp::startGame, this ) );
+
+	mState = STATE_RULES;
+	mFade = 1.f;
+	initGame();
+	updateSignal();
+	mHeart.update( mCamera );
 }
 
 void HeartRateApp::shutdown()
@@ -271,30 +304,41 @@ void HeartRateApp::updateStatistics()
 
 void HeartRateApp::update()
 {
+	mFps = getAverageFps();
 	if ( mVerticalSyncEnabled != gl::isVerticalSyncEnabled() )
 		gl::enableVerticalSync( mVerticalSyncEnabled );
 
-	updateSignal();
+	if ( mState == STATE_GAME )
+	{
+		updateSignal();
+		mHeart.update( mCamera );
+		mPulseSensorManager.update();
+	}
+
 	updateStatistics();
-
-	mHeart.update( mCamera );
-
-	mFps = getAverageFps();
-	mPulseSensorManager.update();
 }
 
 void HeartRateApp::heartbeatCallback0( int data )
 {
+	if ( mState != STATE_GAME )
+		return;
+
 	mInflation0 = mMaxInflation0;
 }
 
 void HeartRateApp::heartbeatCallback1( int data )
 {
+	if ( mState != STATE_GAME )
+		return;
+
 	mInflation1 = mMaxInflation1;
 }
 
 void HeartRateApp::pulseCallback0( int data )
 {
+	if ( mState != STATE_GAME )
+		return;
+
 	data = math< int >::clamp( data, 40, 200 );
 	if ( mPulse0 == 0 )
 		mInitialPulse0 = data;
@@ -304,6 +348,9 @@ void HeartRateApp::pulseCallback0( int data )
 
 void HeartRateApp::pulseCallback1( int data )
 {
+	if ( mState != STATE_GAME )
+		return;
+
 	data = math< int >::clamp( data, 40, 200 );
 	if ( mPulse1 == 0 )
 		mInitialPulse1 = data;
@@ -311,11 +358,22 @@ void HeartRateApp::pulseCallback1( int data )
 	mPulse1 = data;
 }
 
-void HeartRateApp::startGame()
+void HeartRateApp::initGame()
 {
+	mAmplitude0 = mAmplitude1 = 0.f;
+	mInflation0 = mInflation1 = 0.f;
 	mPulse0 = mPulse1 = 0;
 	mLastPulse0 = mLastPulse1 = 0;
 	mInitialPulse0 = mInitialPulse1 = 0;
+}
+
+void HeartRateApp::startGame()
+{
+	initGame();
+	mFade = 1.f,
+	timeline().apply( &mFade, 0.f, 1.f ).finishFn( [ & ]() { mState = STATE_GAME; } );
+	mCountdown = mCountdownDuration * 100;
+	timeline().apply( &mCountdown, 0, mCountdownDuration ).finishFn( [ & ]() { mState = STATE_STATISTICS; } );
 }
 
 void HeartRateApp::drawInfo()
@@ -330,6 +388,15 @@ void HeartRateApp::drawInfo()
 
 	gl::color( Color::white() );
 	Vec2f winSize( getWindowSize() );
+
+	// countdown
+	Vec2f timerPos( winSize * Vec2f( .5f, .05f ) );
+	TextBox timerBox;
+	timerBox.font( mFontSmall ).alignment( TextBox::CENTER ).color( mTextColor1 ).size( 200, TextBox::GROW );
+	boost::format timeFormater = boost::format( "%d:%02d:%02d" ) % ( mCountdown / ( 60 * 100 ) ) % ( ( mCountdown / 100 ) % 60 )
+			% ( mCountdown % 100 );
+	timerBox.setText( timeFormater.str() );
+	gl::draw( timerBox.render(), timerPos - Vec2f( timerBox.getSize().x, timerBox.measure().y ) * .5f );
 
 	// pulse textures
 	gl::Texture pulseTxt0 = mPulseSensorManager.getSensor( 0 ).getPulseTexture();
@@ -480,7 +547,7 @@ void HeartRateApp::drawInfo()
 	gl::disableAlphaBlending();
 }
 
-void HeartRateApp::draw()
+void HeartRateApp::drawHeart()
 {
 	mFbo.bindFramebuffer();
 
@@ -497,7 +564,6 @@ void HeartRateApp::draw()
 	gl::setViewport( getWindowBounds() );
 	gl::setMatricesWindow( getWindowSize() );
 
-	gl::clear();
 	gl::disableDepthRead();
 	gl::disableDepthWrite();
 
@@ -514,6 +580,18 @@ void HeartRateApp::draw()
 		outputRect.scaleCentered( float( getWindowHeight() ) / outputRect.getHeight() );
 
 	gl::draw( heartOutput, outputRect );
+}
+
+void HeartRateApp::draw()
+{
+	gl::setViewport( getWindowBounds() );
+	gl::setMatricesWindow( getWindowSize() );
+
+	gl::clear();
+	gl::disableDepthRead();
+	gl::disableDepthWrite();
+
+	drawHeart();
 
 	if ( mDrawDisplace )
 	{
@@ -532,7 +610,17 @@ void HeartRateApp::draw()
 		gl::drawString( "bloom", pos + labelOffset );
 	}
 
-	drawInfo();
+	if ( ( mState == STATE_RULES ) && mRulesTxt )
+	{
+		Rectf outputRect = Rectf( mRulesTxt.getBounds() ).getCenteredFit( getWindowBounds(), true );
+		gl::enableAlphaBlending();
+		gl::color( ColorA::gray( 1.f, mFade ) );
+		gl::draw( mRulesTxt, outputRect );
+		gl::disableAlphaBlending();
+	}
+
+	if ( mState != STATE_RULES )
+		drawInfo();
 
 	mPulseSensorManager.draw();
 
@@ -568,6 +656,15 @@ void HeartRateApp::keyDown( KeyEvent event )
 				else
 					hideCursor();
 			}
+			break;
+
+		case KeyEvent::KEY_SPACE:
+			if ( mState != STATE_GAME )
+				startGame();
+			break;
+
+		case KeyEvent::KEY_F12:
+			timeline().apply( &mCountdown, 0, 1.f ).finishFn( [ & ]() { mState = STATE_STATISTICS; } );
 			break;
 
 		case KeyEvent::KEY_ESCAPE:
