@@ -289,7 +289,8 @@ void HeartRateApp::updateSignal()
 	mInflation1 *= mInflationDamping1;
 	mAmplitude1 *= mDamping1;
 
-	mHeart.setAmplitudes( mAmplitude0, mAmplitude1 );
+	if ( mState == STATE_GAME )
+		mHeart.setAmplitudes( mAmplitude0, mAmplitude1 );
 }
 
 void HeartRateApp::updateStatistics()
@@ -426,13 +427,10 @@ void HeartRateApp::update()
 	if ( mVerticalSyncEnabled != gl::isVerticalSyncEnabled() )
 		gl::enableVerticalSync( mVerticalSyncEnabled );
 
-	if ( mState == STATE_GAME )
+	if ( ( mState == STATE_GAME ) || ( mState == STATE_SETUP ) )
 	{
 		updateSignal();
 		mHeart.update( mCamera );
-	}
-	if ( ( mState == STATE_GAME ) || ( mState == STATE_SETUP ) )
-	{
 		mPulseSensorManager.update();
 	}
 
@@ -441,7 +439,7 @@ void HeartRateApp::update()
 
 void HeartRateApp::heartbeatCallback0( int data )
 {
-	if ( mState != STATE_GAME )
+	if ( ( mState != STATE_GAME ) && ( mState != STATE_SETUP ) )
 		return;
 
 	mInflation0 = mMaxInflation0;
@@ -449,7 +447,7 @@ void HeartRateApp::heartbeatCallback0( int data )
 
 void HeartRateApp::heartbeatCallback1( int data )
 {
-	if ( mState != STATE_GAME )
+	if ( ( mState != STATE_GAME ) && ( mState != STATE_SETUP ) )
 		return;
 
 	mInflation1 = mMaxInflation1;
@@ -497,9 +495,11 @@ void HeartRateApp::initGame()
 
 void HeartRateApp::startGame()
 {
-	if ( mState == STATE_RULES )
+	if ( ( mState == STATE_RULES ) || ( mState == STATE_STATISTICS ) )
 	{
 		mPulse0 = mPulse1 = 0;
+		mAmplitude0 = mAmplitude1 = 0.f;
+		mInflation0 = mInflation1 = 0.f;
 		mFade = 1.f;
 		timeline().apply( &mFade, 0.f, 1.f ).finishFn( [ & ]()
 				{
