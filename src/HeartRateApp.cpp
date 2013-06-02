@@ -304,7 +304,7 @@ void HeartRateApp::drawInfo()
 
 	// pulse textures
 	gl::Texture pulseTxt0 = mPulseSensorManager.getSensor( 0 ).getPulseTexture();
-	Rectf pulse0Rect( winSize * Vec2f( .05f, .75f ), winSize * Vec2f( .25f, .9f ) );
+	Rectf pulse0Rect( winSize * Vec2f( .05f, .8f ), winSize * Vec2f( .3f, .95f ) );
 	if ( mPulseShader )
 		mPulseShader.bind();
 	gl::draw( pulseTxt0, pulse0Rect );
@@ -325,7 +325,7 @@ void HeartRateApp::drawInfo()
 
 	// pulse values
 	auto mirror = [ &winSize ]( Vec2f p ) { return Vec2f( winSize.x - p.x, p.y ); };
-	Vec2f pulse0Pos( winSize * Vec2f( .15f, .69f ) );
+	Vec2f pulse0Pos( winSize * Vec2f( .11f, .74f ) );
 	Vec2f pulse1Pos = mirror( pulse0Pos );
 	TextBox pulseBox;
 	// FIXME: does not work with size TextBox::GROW, TextBox::GROW
