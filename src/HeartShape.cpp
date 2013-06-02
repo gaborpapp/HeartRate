@@ -96,6 +96,8 @@ void HeartShape::update( const Camera &camera )
 		mDisplaceTexture.update( xDispChn );
 	else
 		mDisplaceTexture = gl::Texture( xDispChn );
+	// FIXME: seems to be a state leak here
+	gl::disable( GL_TEXTURE_2D );
 
 	mModelHeartBeating.clear();
 	const vector< Vec3f > & origVertices = mModelHeart.getVertices();
