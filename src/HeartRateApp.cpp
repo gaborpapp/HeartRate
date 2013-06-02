@@ -111,6 +111,7 @@ class HeartRateApp : public AppBasic
 
 		Font mFontBig, mFontMiddle, mFontSmall, mFontSmaller;
 
+		void initSetup();
 		void initGame();
 		void startGame();
 
@@ -248,6 +249,7 @@ void HeartRateApp::setup()
 
 	mState = STATE_RULES;
 	mFade = 1.f;
+	initSetup();
 	initGame();
 	updateSignal();
 	mHeart.update( mCamera );
@@ -291,6 +293,9 @@ void HeartRateApp::updateSignal()
 
 	if ( mState == STATE_GAME )
 		mHeart.setAmplitudes( mAmplitude0, mAmplitude1 );
+	else
+	if ( ( mState == STATE_RULES ) || ( mState == STATE_SETUP ) )
+		mHeart.setAmplitudes( 0.f, 0.f );
 }
 
 void HeartRateApp::updateStatistics()
@@ -434,7 +439,8 @@ void HeartRateApp::update()
 		mPulseSensorManager.update();
 	}
 
-	updateStatistics();
+	if ( mState == STATE_GAME )
+		updateStatistics();
 }
 
 void HeartRateApp::heartbeatCallback0( int data )
@@ -481,15 +487,25 @@ void HeartRateApp::pulseCallback1( int data )
 		mPulses1.push_back( mPulse1 );
 }
 
+void HeartRateApp::initSetup()
+{
+	mHarmony = -1;
+	mPulse0 = mPulse1 = 0;
+	mAmplitude0 = mAmplitude1 = 0.f;
+	mInflation0 = mInflation1 = 0.f;
+	mInitialPulse0 = mInitialPulse1 = 0;
+}
+
 void HeartRateApp::initGame()
 {
+	mInitialPulse0 = mPulse0;
+	mInitialPulse1 = mPulse1;
 	mAmplitude0 = mAmplitude1 = 0.f;
 	mInflation0 = mInflation1 = 0.f;
 	mPulses0.clear();
 	mPulses1.clear();
 	mHarmonies.clear();
 	mLastPulse0 = mLastPulse1 = 0;
-	mInitialPulse0 = mInitialPulse1 = 0;
 	mStatisticsTxt.reset();
 }
 
@@ -497,9 +513,7 @@ void HeartRateApp::startGame()
 {
 	if ( ( mState == STATE_RULES ) || ( mState == STATE_STATISTICS ) )
 	{
-		mPulse0 = mPulse1 = 0;
-		mAmplitude0 = mAmplitude1 = 0.f;
-		mInflation0 = mInflation1 = 0.f;
+		initSetup();
 		mFade = 1.f;
 		timeline().apply( &mFade, 0.f, 1.f ).finishFn( [ & ]()
 				{
@@ -660,7 +674,7 @@ void HeartRateApp::drawInfo()
 	TextBox harmonyBox;
 	harmonyBox.font( mFontMiddle ).alignment( TextBox::CENTER ).color( mTextColor0 ).size( 150, TextBox::GROW );
 	string harmonyStr;
-	if ( mHarmony >= 0 )
+	if ( ( mHarmony >= 0 ) && ( mState == STATE_GAME ) )
 		harmonyStr = toString( mHarmony ) + "%";
 	else
 		harmonyStr = "--";
@@ -670,6 +684,9 @@ void HeartRateApp::drawInfo()
 	TextBox harmonyDeltaBox;
 	harmonyDeltaBox.font( mFontSmall ).alignment( TextBox::RIGHT ).color( mTextColor1 ).size( 90, TextBox::GROW );
 	string harmonyDelta0Str;
+	if ( mState == STATE_SETUP )
+		harmonyDelta0Str = "--";
+	else
 	if ( mHarmony0 > 0 )
 		harmonyDelta0Str = "+" + toString( mHarmony0 );
 	else
@@ -680,6 +697,9 @@ void HeartRateApp::drawInfo()
 			  harmonyDeltaPos0 -
 				Vec2f( harmonyDeltaBox.getSize().x, harmonyDeltaBox.measure().y ) * .5f );
 	string harmonyDelta1Str;
+	if ( mState == STATE_SETUP )
+		harmonyDelta1Str = "--";
+	else
 	if ( mHarmony1 > 0 )
 		harmonyDelta1Str = "+" + toString( mHarmony1 );
 	else
