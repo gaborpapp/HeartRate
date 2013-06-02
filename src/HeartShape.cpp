@@ -13,7 +13,7 @@ using namespace std;
 
 void HeartShape::setup()
 {
-	ObjLoader loader = ObjLoader( app::loadAsset( "model/heart6.obj" ) );
+	ObjLoader loader = ObjLoader( app::loadAsset( "model/heart7.obj" ) );
 	loader.load( &mModelHeart );
 
 	try

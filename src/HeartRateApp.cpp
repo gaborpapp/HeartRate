@@ -25,6 +25,8 @@
 #include "cinder/Arcball.h"
 #include "cinder/Camera.h"
 #include "cinder/Cinder.h"
+#include "cinder/Font.h"
+#include "cinder/Text.h"
 
 #include "mndlkit/params/PParams.h"
 
@@ -85,8 +87,21 @@ class HeartRateApp : public AppBasic
 		float mInflationDamping0, mInflationDamping1; // inflation damping per frame
 		float mDamping0, mDamping1; // heart amplitude damping per frame
 
+		void pulseCallback0( int data );
+		void pulseCallback1( int data );
+		int mPulse0, mPulse1;
+		int mInitialPulse0, mInitialPulse1;
+		int mLastPulse0, mLastPulse1;
+
 		void updateSignal();
 		void drawInfo();
+
+		float mFontSizeBig, mFontSizeMiddle, mFontSizeSmall, mFontSizeSmaller;
+		Color mTextColor0, mTextColor1, mTextColor2;
+
+		Font mFontBig, mFontMiddle, mFontSmall, mFontSmaller;
+
+		void startGame();
 
 		gl::GlslProg mPulseShader;
 };
@@ -135,6 +150,14 @@ void HeartRateApp::setup()
 	mParams.addSeparator();
 	mParams.addPersistentParam( "Draw displace map", &mDrawDisplace, false );
 
+	mParams.addSeparator();
+	mParams.addPersistentParam( "Font size big", &mFontSizeBig, 54, "min=1 step=.5" );
+	mParams.addPersistentParam( "Font size middle", &mFontSizeMiddle, 48, "min=1 step=.5" );
+	mParams.addPersistentParam( "Font size small", &mFontSizeSmall, 26, "min=1 step=.5" );
+	mParams.addPersistentParam( "Text color 0", &mTextColor0, Color( 1.f, 0.f, 0.f ) );
+	mParams.addPersistentParam( "Text color 1", &mTextColor1, Color::gray( .7 ) );
+	mParams.addPersistentParam( "Text color 2", &mTextColor2, Color( 0.f, 1.f, 0.f ) );
+
 	mHeart.setup();
 
 	// heart fbo
@@ -156,6 +179,10 @@ void HeartRateApp::setup()
 	mPulseSensorManager.addCallback< HeartRateApp >( 1, HeartRate::PulseSensor::MT_BeatPauseTime,
 														&HeartRateApp::heartbeatCallback1, this );
 
+	mPulseSensorManager.addCallback< HeartRateApp >( 0, HeartRate::PulseSensor::MT_BeatPerMinute,
+														&HeartRateApp::pulseCallback0, this );
+	mPulseSensorManager.addCallback< HeartRateApp >( 1, HeartRate::PulseSensor::MT_BeatPerMinute,
+														&HeartRateApp::pulseCallback1, this );
 	try
 	{
 		mPulseShader = gl::GlslProg( app::loadResource( RES_PULSE_VERT ),
@@ -172,6 +199,13 @@ void HeartRateApp::setup()
 	{
 		app::console() << exc.what() << endl;
 	}
+
+	mFontBig = Font( app::loadResource( RES_FONT ), mFontSizeBig );
+	mFontMiddle = Font( app::loadResource( RES_FONT ), mFontSizeBig );
+	mFontSmall = Font( app::loadResource( RES_FONT ), mFontSizeSmall );
+	mFontSmaller = Font( app::loadResource( RES_FONT ), mFontSizeSmall * .5f );
+
+	startGame();
 }
 
 void HeartRateApp::shutdown()
@@ -232,6 +266,29 @@ void HeartRateApp::heartbeatCallback1( int data )
 	mInflation1 = mMaxInflation1;
 }
 
+void HeartRateApp::pulseCallback0( int data )
+{
+	if ( mPulse0 == 0 )
+		mInitialPulse0 = data;
+	mLastPulse0 = mPulse0;
+	mPulse0 = data;
+}
+
+void HeartRateApp::pulseCallback1( int data )
+{
+	if ( mPulse1 == 0 )
+		mInitialPulse1 = data;
+	mLastPulse1 = mPulse1;
+	mPulse1 = data;
+}
+
+void HeartRateApp::startGame()
+{
+	mPulse0 = mPulse1 = 0;
+	mLastPulse0 = mLastPulse1 = 0;
+	mInitialPulse0 = mInitialPulse1 = 0;
+}
+
 void HeartRateApp::drawInfo()
 {
 	gl::setViewport( getWindowBounds() );
@@ -265,6 +322,101 @@ void HeartRateApp::drawInfo()
 	gl::draw( pulseTxt1, pulse1Rect );
 	if ( mPulseShader )
 		mPulseShader.unbind();
+
+	// pulse values
+	auto mirror = [ &winSize ]( Vec2f p ) { return Vec2f( winSize.x - p.x, p.y ); };
+	Vec2f pulse0Pos( winSize * Vec2f( .15f, .69f ) );
+	Vec2f pulse1Pos = mirror( pulse0Pos );
+	TextBox pulseBox;
+	// FIXME: does not work with size TextBox::GROW, TextBox::GROW
+	pulseBox.font( mFontBig ).alignment( TextBox::CENTER ).color( mTextColor0 ).size( 200, TextBox::GROW );
+
+	string pulse0Str, pulse1Str;
+	if ( mPulse0 )
+		pulse0Str = toString( mPulse0 );
+	else
+		pulse0Str = "--";
+	if ( mPulse1 )
+		pulse1Str = toString( mPulse1 );
+	else
+		pulse1Str = "--";
+	pulseBox.setText( pulse0Str );
+	gl::draw( pulseBox.render(), pulse0Pos - pulseBox.getSize() * .5f );
+	pulseBox.setText( pulse1Str );
+	gl::draw( pulseBox.render(), pulse1Pos - pulseBox.getSize() * .5f );
+
+	// pulse delta
+	Vec2f pulse0DeltaPos = pulse0Pos - Vec2f( 0, .6f * pulseBox.measure().y );
+	Vec2f pulse1DeltaPos = mirror( pulse0DeltaPos );
+	int pulse0Delta = mPulse0 - mInitialPulse0;
+	int pulse1Delta = mPulse1 - mInitialPulse1;
+	string pulse0DeltaStr, pulse1DeltaStr;
+	if ( mPulse0 )
+	{
+		pulse0DeltaStr = toString( pulse0Delta );
+		if ( pulse0Delta > 0 )
+			pulse0DeltaStr = "+" + pulse0DeltaStr;
+	}
+	else
+		pulse0DeltaStr = "--";
+	if ( mPulse1 )
+	{
+		pulse1DeltaStr = toString( pulse1Delta );
+		if ( pulse1Delta > 0 )
+			pulse1DeltaStr = "+" + pulse1DeltaStr;
+	}
+	else
+		pulse1DeltaStr = "--";
+	TextBox pulseDeltaBox;
+	TextBox arrowBox;
+	const string arrowDown = "\xe2\x96\xbc";
+	const string arrowUp = "\xe2\x96\xb2";
+
+	pulseDeltaBox.font( mFontSmall ).alignment( TextBox::CENTER ).color( mTextColor1 ).size( 150, TextBox::GROW );
+	pulseDeltaBox.setText( pulse0DeltaStr );
+	gl::draw( pulseDeltaBox.render(), pulse0DeltaPos - pulseDeltaBox.getSize() * .5f );
+	arrowBox.font( mFontSmaller ).alignment( TextBox::CENTER ).size( 50, TextBox::GROW );
+	int pulse0ArrowDelta = mPulse0 - mLastPulse0;
+	if ( pulse0ArrowDelta > 0 )
+	{
+		arrowBox.setColor( mTextColor2 );
+		arrowBox.setText( arrowUp );
+	}
+	else if ( pulse0ArrowDelta < 0 )
+	{
+		arrowBox.setColor( mTextColor0 );
+		arrowBox.setText( arrowDown );
+	}
+	else
+	{
+		arrowBox.setColor( mTextColor1 );
+		arrowBox.setText( "" );
+	}
+	gl::draw( arrowBox.render(), pulse0DeltaPos + Vec2f( .3f * pulseDeltaBox.measure().x, 0.f )
+			+ arrowBox.measure() * Vec2f( 0, .5f ) );
+
+
+	pulseDeltaBox.setText( pulse1DeltaStr );
+	gl::draw( pulseDeltaBox.render(), pulse1DeltaPos - pulseDeltaBox.getSize() * .5f );
+	int pulse1ArrowDelta = mPulse1 - mLastPulse1;
+	if ( pulse1ArrowDelta > 0 )
+	{
+		arrowBox.setColor( mTextColor2 );
+		arrowBox.setText( arrowUp );
+	}
+	else if ( pulse1ArrowDelta < 0 )
+	{
+		arrowBox.setColor( mTextColor0 );
+		arrowBox.setText( arrowDown );
+	}
+	else
+	{
+		arrowBox.setColor( mTextColor1 );
+		arrowBox.setText( "" );
+	}
+	gl::draw( arrowBox.render(), pulse1DeltaPos + Vec2f( .3f * pulseDeltaBox.measure().x, 0.f )
+			+ arrowBox.measure() * Vec2f( 0, .5f ) );
+
 	gl::disableAlphaBlending();
 }
 
@@ -294,8 +446,14 @@ void HeartRateApp::draw()
 	gl::Texture heartOutput = mHeartBloom.process( mFbo.getTexture(), mBloomIterations,
 			mBloomStrength * mAmplitude0, mBloomStrength * mAmplitude1 );
 	heartOutput.setFlipped();
-	Area outputArea = Area::proportionalFit( heartOutput.getBounds(), getWindowBounds(), true, true );
-	gl::draw( heartOutput, outputArea );
+	Rectf outputRect = Rectf( heartOutput.getBounds() ).getCenteredFit( getWindowBounds(), true );
+	if ( outputRect.getWidth() < getWindowWidth() )
+		outputRect.scaleCentered( float( getWindowWidth() ) / outputRect.getWidth() );
+	else
+	if ( outputRect.getHeight() < getWindowHeight() )
+		outputRect.scaleCentered( float( getWindowHeight() ) / outputRect.getHeight() );
+
+	gl::draw( heartOutput, outputRect );
 
 	if ( mDrawDisplace )
 	{

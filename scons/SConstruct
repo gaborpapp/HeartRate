@@ -4,8 +4,8 @@ env['APP_TARGET'] = 'HeartRateApp'
 env['APP_SOURCES'] = ['HeartRateApp.cpp', 'HeartBloom.cpp', 'HeartShape.cpp',
 		'KawaseHBloom.cpp']
 env['RESOURCES'] = ['shaders/PhongDirectional.frag', 'shaders/PhongDirectional.vert',
-		'shaders/Pulse.vert', 'shaders/Pulse.frag']
-env['ASSETS'] = ['model/heart6.obj', 'capture/*.xml']
+		'shaders/Pulse.vert', 'shaders/Pulse.frag', 'ocraext.ttf']
+env['ASSETS'] = ['model/heart7.obj', 'capture/*.xml']
 env['DEBUG'] = 0
 
 env = SConscript('../../../blocks/Cinder-PulseSensor/scons/SConscript', exports = 'env')
