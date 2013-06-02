@@ -77,6 +77,7 @@ class HeartRateApp : public AppBasic
 
 		// debug
 		float mFps;
+		bool mVerticalSyncEnabled;
 		bool mDrawDisplace;
 		/*
 		float mBpm0, mBpm1; // heart rate
@@ -94,6 +95,7 @@ class HeartRateApp : public AppBasic
 		int mLastPulse0, mLastPulse1;
 
 		void updateSignal();
+		void updateStatistics();
 		void drawInfo();
 
 		float mFontSizeBig, mFontSizeMiddle, mFontSizeSmall, mFontSizeSmaller;
@@ -104,6 +106,9 @@ class HeartRateApp : public AppBasic
 		void startGame();
 
 		gl::GlslProg mPulseShader;
+
+		int mHarmony;
+		int mHarmony0, mHarmony1;
 };
 
 const int HeartRateApp::FBO_WIDTH = 1280;
@@ -147,6 +152,7 @@ void HeartRateApp::setup()
 	// debug
 	mFps = 0;
 	mParams.addParam( "Fps", &mFps, "", false );
+	mParams.addPersistentParam( "Vertical sync", &mVerticalSyncEnabled, true );
 	mParams.addSeparator();
 	mParams.addPersistentParam( "Draw displace map", &mDrawDisplace, false );
 
@@ -155,7 +161,7 @@ void HeartRateApp::setup()
 	mParams.addPersistentParam( "Font size middle", &mFontSizeMiddle, 48, "min=1 step=.5" );
 	mParams.addPersistentParam( "Font size small", &mFontSizeSmall, 26, "min=1 step=.5" );
 	mParams.addPersistentParam( "Text color 0", &mTextColor0, Color( 1.f, 0.f, 0.f ) );
-	mParams.addPersistentParam( "Text color 1", &mTextColor1, Color::gray( .7 ) );
+	mParams.addPersistentParam( "Text color 1", &mTextColor1, Color::gray( .5 ) );
 	mParams.addPersistentParam( "Text color 2", &mTextColor2, Color( 0.f, 1.f, 0.f ) );
 
 	mHeart.setup();
@@ -201,7 +207,7 @@ void HeartRateApp::setup()
 	}
 
 	mFontBig = Font( app::loadResource( RES_FONT ), mFontSizeBig );
-	mFontMiddle = Font( app::loadResource( RES_FONT ), mFontSizeBig );
+	mFontMiddle = Font( app::loadResource( RES_FONT ), mFontSizeMiddle );
 	mFontSmall = Font( app::loadResource( RES_FONT ), mFontSizeSmall );
 	mFontSmaller = Font( app::loadResource( RES_FONT ), mFontSizeSmall * .5f );
 
@@ -247,9 +253,30 @@ void HeartRateApp::updateSignal()
 	mHeart.setAmplitudes( mAmplitude0, mAmplitude1 );
 }
 
+void HeartRateApp::updateStatistics()
+{
+	if ( ( mAmplitude0 == 0.f ) || ( mAmplitude1 == 0.f ) )
+	{
+		mHarmony = 0;
+	}
+	else
+	{
+		mHarmony = int( 100.f * math< float >::min( mAmplitude0, mAmplitude1 ) /
+					math< float >::max( mAmplitude0, mAmplitude1 ) );
+	}
+
+	mHarmony0 = int( 100.f * mAmplitude0 );
+	mHarmony1 = int( 100.f * mAmplitude1 );
+}
+
 void HeartRateApp::update()
 {
+	if ( mVerticalSyncEnabled != gl::isVerticalSyncEnabled() )
+		gl::enableVerticalSync( mVerticalSyncEnabled );
+
 	updateSignal();
+	updateStatistics();
+
 	mHeart.update( mCamera );
 
 	mFps = getAverageFps();
@@ -268,6 +295,7 @@ void HeartRateApp::heartbeatCallback1( int data )
 
 void HeartRateApp::pulseCallback0( int data )
 {
+	data = math< int >::clamp( data, 40, 200 );
 	if ( mPulse0 == 0 )
 		mInitialPulse0 = data;
 	mLastPulse0 = mPulse0;
@@ -276,6 +304,7 @@ void HeartRateApp::pulseCallback0( int data )
 
 void HeartRateApp::pulseCallback1( int data )
 {
+	data = math< int >::clamp( data, 40, 200 );
 	if ( mPulse1 == 0 )
 		mInitialPulse1 = data;
 	mLastPulse1 = mPulse1;
@@ -416,6 +445,37 @@ void HeartRateApp::drawInfo()
 	}
 	gl::draw( arrowBox.render(), pulse1DeltaPos + Vec2f( .3f * pulseDeltaBox.measure().x, 0.f )
 			+ arrowBox.measure() * Vec2f( 0, .5f ) );
+
+	// harmony
+	Vec2f harmonyPos( winSize * Vec2f( .5f, .95f ) );
+	TextBox harmonyBox;
+	harmonyBox.font( mFontMiddle ).alignment( TextBox::CENTER ).color( mTextColor0 ).size( 150, TextBox::GROW );
+	harmonyBox.setText( toString( mHarmony ) + "%" );
+	gl::draw( harmonyBox.render(), harmonyPos - Vec2f( harmonyBox.getSize().x, harmonyBox.measure().y ) * .5f );
+
+	TextBox harmonyDeltaBox;
+	harmonyDeltaBox.font( mFontSmall ).alignment( TextBox::RIGHT ).color( mTextColor1 ).size( 90, TextBox::GROW );
+	string harmonyDelta0Str;
+	if ( mHarmony0 > 0 )
+		harmonyDelta0Str = "+" + toString( mHarmony0 );
+	else
+		harmonyDelta0Str = toString( mHarmony0 );
+	harmonyDeltaBox.setText( harmonyDelta0Str );
+	Vec2f harmonyDeltaPos0 = harmonyPos - Vec2f( harmonyBox.measure().x, 0.f ) * .5f - winSize * Vec2f( .05f, 0.f );
+	gl::draw( harmonyDeltaBox.render(),
+			  harmonyDeltaPos0 -
+				Vec2f( harmonyDeltaBox.getSize().x, harmonyDeltaBox.measure().y ) * .5f );
+	string harmonyDelta1Str;
+	if ( mHarmony1 > 0 )
+		harmonyDelta1Str = "+" + toString( mHarmony1 );
+	else
+		harmonyDelta1Str = toString( mHarmony1 );
+	harmonyDeltaBox.setText( harmonyDelta1Str );
+	harmonyDeltaBox.setAlignment( TextBox::LEFT );
+	Vec2f harmonyDeltaPos1 = mirror( harmonyDeltaPos0 );
+	gl::draw( harmonyDeltaBox.render(),
+				harmonyDeltaPos1 -
+				   Vec2f( harmonyDeltaBox.getSize().x, harmonyDeltaBox.measure().y ) * .5f );
 
 	gl::disableAlphaBlending();
 }
