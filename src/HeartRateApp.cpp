@@ -131,6 +131,7 @@ class HeartRateApp : public AppBasic
 		enum
 		{
 			STATE_RULES = 0,
+			STATE_SETUP,
 			STATE_GAME,
 			STATE_STATISTICS
 		};
@@ -429,6 +430,9 @@ void HeartRateApp::update()
 	{
 		updateSignal();
 		mHeart.update( mCamera );
+	}
+	if ( ( mState == STATE_GAME ) || ( mState == STATE_SETUP ) )
+	{
 		mPulseSensorManager.update();
 	}
 
@@ -453,35 +457,36 @@ void HeartRateApp::heartbeatCallback1( int data )
 
 void HeartRateApp::pulseCallback0( int data )
 {
-	if ( mState != STATE_GAME )
+	if ( ( mState != STATE_GAME ) && ( mState != STATE_SETUP ) )
 		return;
 
 	data = math< int >::clamp( data, 40, 200 );
-	if ( mPulse0 == 0 )
+	if ( ( mInitialPulse0 == 0 ) && ( mState == STATE_GAME ) )
 		mInitialPulse0 = data;
 	mLastPulse0 = mPulse0;
 	mPulse0 = data;
-	mPulses0.push_back( mPulse0 );
+	if ( mState == STATE_GAME )
+		mPulses0.push_back( mPulse0 );
 }
 
 void HeartRateApp::pulseCallback1( int data )
 {
-	if ( mState != STATE_GAME )
+	if ( ( mState != STATE_GAME ) && ( mState != STATE_SETUP ) )
 		return;
 
 	data = math< int >::clamp( data, 40, 200 );
-	if ( mPulse1 == 0 )
+	if ( ( mInitialPulse1 == 0 ) && ( mState == STATE_GAME ) )
 		mInitialPulse1 = data;
 	mLastPulse1 = mPulse1;
 	mPulse1 = data;
-	mPulses1.push_back( mPulse1 );
+	if ( mState == STATE_GAME )
+		mPulses1.push_back( mPulse1 );
 }
 
 void HeartRateApp::initGame()
 {
 	mAmplitude0 = mAmplitude1 = 0.f;
 	mInflation0 = mInflation1 = 0.f;
-	mPulse0 = mPulse1 = 0;
 	mPulses0.clear();
 	mPulses1.clear();
 	mHarmonies.clear();
@@ -492,15 +497,25 @@ void HeartRateApp::initGame()
 
 void HeartRateApp::startGame()
 {
-	mFade = 1.f,
-	timeline().apply( &mFade, 0.f, 1.f ).finishFn( [ & ]()
-			{
-				initGame();
-				mGameStartTime = getElapsedSeconds();
-				mState = STATE_GAME;
-			} );
-	mCountdown = mCountdownDuration * 100;
-	timeline().apply( &mCountdown, 0, mCountdownDuration ).finishFn( [ & ]() { mState = STATE_STATISTICS; } );
+	if ( mState == STATE_RULES )
+	{
+		mPulse0 = mPulse1 = 0;
+		mFade = 1.f;
+		timeline().apply( &mFade, 0.f, 1.f ).finishFn( [ & ]()
+				{
+					mState = STATE_SETUP;
+					mCountdown = mCountdownDuration * 100;
+				} );
+	}
+	else
+	if ( mState == STATE_SETUP )
+	{
+		initGame();
+		mState = STATE_GAME;
+		mGameStartTime = getElapsedSeconds();
+		mCountdown = mCountdownDuration * 100;
+		timeline().apply( &mCountdown, 0, mCountdownDuration ).finishFn( [ & ]() { mState = STATE_STATISTICS; } );
+	}
 }
 
 void HeartRateApp::drawInfo()
@@ -574,7 +589,7 @@ void HeartRateApp::drawInfo()
 	int pulse0Delta = mPulse0 - mInitialPulse0;
 	int pulse1Delta = mPulse1 - mInitialPulse1;
 	string pulse0DeltaStr, pulse1DeltaStr;
-	if ( mPulse0 )
+	if ( mPulse0 && ( mState == STATE_GAME ) )
 	{
 		pulse0DeltaStr = toString( pulse0Delta );
 		if ( pulse0Delta > 0 )
@@ -582,7 +597,7 @@ void HeartRateApp::drawInfo()
 	}
 	else
 		pulse0DeltaStr = "--";
-	if ( mPulse1 )
+	if ( mPulse1 && ( mState == STATE_GAME ) )
 	{
 		pulse1DeltaStr = toString( pulse1Delta );
 		if ( pulse1Delta > 0 )
