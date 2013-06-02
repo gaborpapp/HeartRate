@@ -15,6 +15,9 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <algorithm>
+#include <numeric>
+
 #include <boost/format.hpp>
 
 #include "cinder/app/AppBasic.h"
@@ -98,6 +101,8 @@ class HeartRateApp : public AppBasic
 
 		void updateSignal();
 		void updateStatistics();
+		void renderStatistics();
+
 		void drawHeart();
 		void drawInfo();
 
@@ -113,11 +118,15 @@ class HeartRateApp : public AppBasic
 
 		int mHarmony;
 		int mHarmony0, mHarmony1;
+		vector< int > mPulses0, mPulses1;
+		vector< int > mHarmonies;
 
 		gl::Texture mRulesTxt;
+		gl::Texture mStatisticsTxt;
 		Anim< float > mFade;
 		Anim< int > mCountdown;
 		int mCountdownDuration;
+		int mHarmonyIgnoreDuration;
 
 		enum
 		{
@@ -126,6 +135,7 @@ class HeartRateApp : public AppBasic
 			STATE_STATISTICS
 		};
 		int mState;
+		double mGameStartTime;
 };
 
 const int HeartRateApp::FBO_WIDTH = 1280;
@@ -178,6 +188,7 @@ void HeartRateApp::setup()
 	mParams.addPersistentParam( "Text color 2", &mTextColor2, Color( 0.f, 1.f, 0.f ) );
 	mParams.addSeparator();
 	mParams.addPersistentParam( "Countdown duration", &mCountdownDuration, 5 * 60, "min=10" );
+	mParams.addPersistentParam( "Harmony ignore duration", &mHarmonyIgnoreDuration, 30, "min=0" );
 
 	mHeart.setup();
 
@@ -282,18 +293,130 @@ void HeartRateApp::updateSignal()
 
 void HeartRateApp::updateStatistics()
 {
+	static int lastHarmony = -1;
+	static int lastHarmonyStableFrames = 0;
+
+	if ( ( getElapsedSeconds() - mGameStartTime ) < mHarmonyIgnoreDuration )
+	{
+		mHarmony = -1;
+	}
+	else
 	if ( ( mAmplitude0 == 0.f ) || ( mAmplitude1 == 0.f ) )
 	{
-		mHarmony = 0;
+		mHarmony = -1;
 	}
 	else
 	{
-		mHarmony = int( 100.f * math< float >::min( mAmplitude0, mAmplitude1 ) /
-					math< float >::max( mAmplitude0, mAmplitude1 ) );
+		int harmony = int( 100.f * math< float >::min( mAmplitude0, mAmplitude1 ) /
+						math< float >::max( mAmplitude0, mAmplitude1 ) );
+		if ( lastHarmony == harmony )
+		{
+			lastHarmonyStableFrames++;
+			if ( lastHarmonyStableFrames >= 2 )
+			{
+				mHarmony = harmony;
+				mHarmonies.push_back( mHarmony );
+			}
+		}
+		else
+		{
+			lastHarmonyStableFrames = 0;
+		}
+		lastHarmony = harmony;
 	}
 
 	mHarmony0 = int( 100.f * mAmplitude0 );
 	mHarmony1 = int( 100.f * mAmplitude1 );
+}
+
+void HeartRateApp::renderStatistics()
+{
+	string minPulse0Str, maxPulse0Str, meanPulse0Str;
+	string minPulse1Str, maxPulse1Str, meanPulse1Str;
+
+	if ( mPulses0.empty() )
+	{
+		minPulse0Str = "--";
+		maxPulse0Str = "--";
+		meanPulse0Str = "--";
+	}
+	else
+	{
+		auto bounds0 = std::minmax_element( mPulses0.begin(), mPulses0.end() );
+		minPulse0Str = toString( *bounds0.first );
+		maxPulse0Str = toString( *bounds0.second );
+		long meanPulse0 = std::accumulate( mPulses0.begin(), mPulses0.end(), 0L ) / mPulses0.size();
+		meanPulse0Str = toString( meanPulse0 );
+	}
+	if ( mPulses1.empty() )
+	{
+		minPulse1Str = "--";
+		maxPulse1Str = "--";
+		meanPulse1Str = "--";
+	}
+	else
+	{
+		auto bounds1 = std::minmax_element( mPulses1.begin(), mPulses1.end() );
+		minPulse1Str = toString( *bounds1.first );
+		maxPulse1Str = toString( *bounds1.second );
+		long meanPulse1 = std::accumulate( mPulses1.begin(), mPulses1.end(), 0L ) / mPulses1.size();
+		meanPulse1Str = toString( meanPulse1 );
+	}
+
+	TextLayout layout;
+	layout.clear( ColorA::gray( 0.f, 0.8f ) );
+	layout.setBorder( 50, 50 );
+
+	auto addLine = [ & ]( string s0, string s1, string s2 )
+	{
+		layout.setFont( mFontMiddle );
+		layout.setColor( mTextColor0 );
+		layout.addCenteredLine( s0 );
+		layout.setFont( mFontSmall );
+		layout.setColor( mTextColor1 );
+		layout.append( s1 );
+		layout.setFont( mFontMiddle );
+		layout.setColor( mTextColor0 );
+		layout.append( s2 );
+	};
+
+	addLine( minPulse0Str, " minimum pulse ", minPulse1Str );
+	addLine( maxPulse0Str, " maximum pulse ", maxPulse1Str );
+	addLine( meanPulse0Str, " mean pulse ", meanPulse1Str );
+
+	string minHarmonyStr, maxHarmonyStr, meanHarmonyStr;
+
+	if ( mHarmonies.empty() )
+	{
+		minHarmonyStr = "--";
+		maxHarmonyStr = "--";
+		meanHarmonyStr = "--";
+	}
+	else
+	{
+		auto bounds = std::minmax_element( mHarmonies.begin(), mHarmonies.end() );
+		minHarmonyStr = toString( *bounds.first );
+		maxHarmonyStr = toString( *bounds.second );
+		long meanHarmony = std::accumulate( mHarmonies.begin(), mHarmonies.end(), 0L ) / mHarmonies.size();
+		meanHarmonyStr = toString( meanHarmony );
+	}
+#if 0
+	auto addLine2 = [ & ]( string s0, string s1 )
+	{
+		layout.setFont( mFontSmall );
+		layout.setColor( mTextColor1 );
+		layout.addCenteredLine( s0 );
+		layout.setFont( mFontMiddle );
+		layout.setColor( mTextColor0 );
+		layout.append( s1 );
+	};
+#endif
+	addLine( minHarmonyStr, " minimum harmony ", minHarmonyStr );
+	addLine( maxHarmonyStr, " maximum harmony ", maxHarmonyStr );
+	addLine( meanHarmonyStr, " mean harmony ", meanHarmonyStr );
+
+	Surface8u rendered = layout.render( true );
+	mStatisticsTxt = gl::Texture( rendered );
 }
 
 void HeartRateApp::update()
@@ -338,6 +461,7 @@ void HeartRateApp::pulseCallback0( int data )
 		mInitialPulse0 = data;
 	mLastPulse0 = mPulse0;
 	mPulse0 = data;
+	mPulses0.push_back( mPulse0 );
 }
 
 void HeartRateApp::pulseCallback1( int data )
@@ -350,6 +474,7 @@ void HeartRateApp::pulseCallback1( int data )
 		mInitialPulse1 = data;
 	mLastPulse1 = mPulse1;
 	mPulse1 = data;
+	mPulses1.push_back( mPulse1 );
 }
 
 void HeartRateApp::initGame()
@@ -357,15 +482,23 @@ void HeartRateApp::initGame()
 	mAmplitude0 = mAmplitude1 = 0.f;
 	mInflation0 = mInflation1 = 0.f;
 	mPulse0 = mPulse1 = 0;
+	mPulses0.clear();
+	mPulses1.clear();
+	mHarmonies.clear();
 	mLastPulse0 = mLastPulse1 = 0;
 	mInitialPulse0 = mInitialPulse1 = 0;
+	mStatisticsTxt.reset();
 }
 
 void HeartRateApp::startGame()
 {
-	initGame();
 	mFade = 1.f,
-	timeline().apply( &mFade, 0.f, 1.f ).finishFn( [ & ]() { mState = STATE_GAME; } );
+	timeline().apply( &mFade, 0.f, 1.f ).finishFn( [ & ]()
+			{
+				initGame();
+				mGameStartTime = getElapsedSeconds();
+				mState = STATE_GAME;
+			} );
 	mCountdown = mCountdownDuration * 100;
 	timeline().apply( &mCountdown, 0, mCountdownDuration ).finishFn( [ & ]() { mState = STATE_STATISTICS; } );
 }
@@ -511,7 +644,12 @@ void HeartRateApp::drawInfo()
 	Vec2f harmonyPos( winSize * Vec2f( .5f, .95f ) );
 	TextBox harmonyBox;
 	harmonyBox.font( mFontMiddle ).alignment( TextBox::CENTER ).color( mTextColor0 ).size( 150, TextBox::GROW );
-	harmonyBox.setText( toString( mHarmony ) + "%" );
+	string harmonyStr;
+	if ( mHarmony >= 0 )
+		harmonyStr = toString( mHarmony ) + "%";
+	else
+		harmonyStr = "--";
+	harmonyBox.setText( harmonyStr );
 	gl::draw( harmonyBox.render(), harmonyPos - Vec2f( harmonyBox.getSize().x, harmonyBox.measure().y ) * .5f );
 
 	TextBox harmonyDeltaBox;
@@ -614,6 +752,21 @@ void HeartRateApp::draw()
 
 	if ( mState != STATE_RULES )
 		drawInfo();
+
+	if ( mState == STATE_STATISTICS )
+	{
+		if ( !mStatisticsTxt )
+		{
+			renderStatistics();
+			mFade = 0.f;
+			timeline().apply( &mFade, 1.f, 1.f );
+		}
+		Rectf outputRect = Rectf( mStatisticsTxt.getBounds() ).getCenteredFit( getWindowBounds(), false );
+		gl::enableAlphaBlending();
+		gl::color( ColorA::gray( 1.f, mFade ) );
+		gl::draw( mStatisticsTxt, outputRect );
+		gl::disableAlphaBlending();
+	}
 
 	mPulseSensorManager.draw();
 
