@@ -368,13 +368,13 @@ void HeartRateApp::renderStatistics()
 	{
 		auto bounds0 = std::minmax_element( mPulses0.begin(), mPulses0.end() );
 		minPulse = *bounds0.first;
-		minPulse0Str = ( boost::format( "%+4d" ) % ( *bounds0.first ) ).str();
+		minPulse0Str = ( boost::format( "%4d" ) % ( *bounds0.first ) ).str();
 		minPulse0DeltaStr = ( boost::format( "%+4d" ) % ( *bounds0.first - mInitialPulse0 ) ).str();
 		maxPulse = *bounds0.second;
-		maxPulse0Str = ( boost::format( "%+4d" ) % ( *bounds0.second ) ).str();
+		maxPulse0Str = ( boost::format( "%4d" ) % ( *bounds0.second ) ).str();
 		maxPulse0DeltaStr = ( boost::format( "%+4d" ) % ( *bounds0.second - mInitialPulse0 ) ).str();
 		long meanPulse0 = std::accumulate( mPulses0.begin(), mPulses0.end(), 0L ) / mPulses0.size();
-		meanPulse0Str = ( boost::format( "%+4d" ) % ( meanPulse0 ) ).str();
+		meanPulse0Str = ( boost::format( "%4d" ) % ( meanPulse0 ) ).str();
 		meanPulse0DeltaStr = ( boost::format( "%+4d" ) % ( meanPulse0 - mInitialPulse0 ) ).str();
 	}
 
@@ -391,13 +391,13 @@ void HeartRateApp::renderStatistics()
 	{
 		auto bounds1 = std::minmax_element( mPulses1.begin(), mPulses1.end() );
 		minPulse = math< int >::min( minPulse, *bounds1.first );
-		minPulse1Str = ( boost::format( "%+4d" ) % ( *bounds1.first ) ).str();
+		minPulse1Str = ( boost::format( "%4d" ) % ( *bounds1.first ) ).str();
 		minPulse1DeltaStr = ( boost::format( "%+4d" ) % ( *bounds1.first - mInitialPulse1 ) ).str();
 		maxPulse = math< int >::max( maxPulse, *bounds1.second );
-		maxPulse1Str = ( boost::format( "%+4d" ) % ( *bounds1.second ) ).str();
+		maxPulse1Str = ( boost::format( "%4d" ) % ( *bounds1.second ) ).str();
 		maxPulse1DeltaStr = ( boost::format( "%+4d" ) % ( *bounds1.second - mInitialPulse1 ) ).str();
 		long meanPulse1 = std::accumulate( mPulses1.begin(), mPulses1.end(), 0L ) / mPulses1.size();
-		meanPulse1Str = ( boost::format( "%+4d" ) % ( meanPulse1 ) ).str();
+		meanPulse1Str = ( boost::format( "%4d" ) % ( meanPulse1 ) ).str();
 		meanPulse1DeltaStr = ( boost::format( "%+4d" ) % ( meanPulse1 - mInitialPulse1 ) ).str();
 	}
 
