@@ -355,48 +355,48 @@ void HeartRateApp::renderStatistics()
 
 	if ( mPulses0.empty() )
 	{
-		minPulse0Str = "--";
-		maxPulse0Str = "--";
-		meanPulse0Str = "--";
-		minPulse0DeltaStr = "--";
-		maxPulse0DeltaStr = "--";
-		meanPulse0DeltaStr = "--";
+		minPulse0Str = " -- ";
+		maxPulse0Str = " -- ";
+		meanPulse0Str = " -- ";
+		minPulse0DeltaStr = " -- ";
+		maxPulse0DeltaStr = " -- ";
+		meanPulse0DeltaStr = " -- ";
 	}
 	else
 	{
 		auto bounds0 = std::minmax_element( mPulses0.begin(), mPulses0.end() );
 		minPulse = *bounds0.first;
-		minPulse0Str = toString( *bounds0.first );
-		minPulse0DeltaStr = ( boost::format( "%+d" ) % ( *bounds0.first - mInitialPulse0 ) ).str();
+		minPulse0Str = ( boost::format( "%+4d" ) % ( *bounds0.first ) ).str();
+		minPulse0DeltaStr = ( boost::format( "%+4d" ) % ( *bounds0.first - mInitialPulse0 ) ).str();
 		maxPulse = *bounds0.second;
-		maxPulse0Str = toString( *bounds0.second );
-		maxPulse0DeltaStr = ( boost::format( "%+d" ) % ( *bounds0.second - mInitialPulse0 ) ).str();
+		maxPulse0Str = ( boost::format( "%+4d" ) % ( *bounds0.second ) ).str();
+		maxPulse0DeltaStr = ( boost::format( "%+4d" ) % ( *bounds0.second - mInitialPulse0 ) ).str();
 		long meanPulse0 = std::accumulate( mPulses0.begin(), mPulses0.end(), 0L ) / mPulses0.size();
-		meanPulse0Str = toString( meanPulse0 );
-		meanPulse0DeltaStr = ( boost::format( "%+d" ) % ( meanPulse0 - mInitialPulse0 ) ).str();
+		meanPulse0Str = ( boost::format( "%+4d" ) % ( meanPulse0 ) ).str();
+		meanPulse0DeltaStr = ( boost::format( "%+4d" ) % ( meanPulse0 - mInitialPulse0 ) ).str();
 	}
 
 	if ( mPulses1.empty() )
 	{
-		minPulse1Str = "--";
-		maxPulse1Str = "--";
-		meanPulse1Str = "--";
-		minPulse1DeltaStr = "--";
-		maxPulse1DeltaStr = "--";
-		meanPulse1DeltaStr = "--";
+		minPulse1Str = " -- ";
+		maxPulse1Str = " -- ";
+		meanPulse1Str = " -- ";
+		minPulse1DeltaStr = " -- ";
+		maxPulse1DeltaStr = " -- ";
+		meanPulse1DeltaStr = " -- ";
 	}
 	else
 	{
 		auto bounds1 = std::minmax_element( mPulses1.begin(), mPulses1.end() );
 		minPulse = math< int >::min( minPulse, *bounds1.first );
-		minPulse1Str = toString( *bounds1.first );
-		minPulse1DeltaStr = ( boost::format( "%+d" ) % ( *bounds1.first - mInitialPulse1 ) ).str();
+		minPulse1Str = ( boost::format( "%+4d" ) % ( *bounds1.first ) ).str();
+		minPulse1DeltaStr = ( boost::format( "%+4d" ) % ( *bounds1.first - mInitialPulse1 ) ).str();
 		maxPulse = math< int >::max( maxPulse, *bounds1.second );
-		maxPulse1Str = toString( *bounds1.second );
-		maxPulse1DeltaStr = ( boost::format( "%+d" ) % ( *bounds1.second - mInitialPulse1 ) ).str();
+		maxPulse1Str = ( boost::format( "%+4d" ) % ( *bounds1.second ) ).str();
+		maxPulse1DeltaStr = ( boost::format( "%+4d" ) % ( *bounds1.second - mInitialPulse1 ) ).str();
 		long meanPulse1 = std::accumulate( mPulses1.begin(), mPulses1.end(), 0L ) / mPulses1.size();
-		meanPulse1Str = toString( meanPulse1 );
-		meanPulse1DeltaStr = ( boost::format( "%+d" ) % ( meanPulse1 - mInitialPulse1 ) ).str();
+		meanPulse1Str = ( boost::format( "%+4d" ) % ( meanPulse1 ) ).str();
+		meanPulse1DeltaStr = ( boost::format( "%+4d" ) % ( meanPulse1 - mInitialPulse1 ) ).str();
 	}
 
 	TextLayout layout;
@@ -422,9 +422,9 @@ void HeartRateApp::renderStatistics()
 		layout.append( s2delta );
 	};
 
-	addLine( minPulse0Str, minPulse0DeltaStr + " ", " minimum pulse ", minPulse1Str, " " + minPulse1DeltaStr );
-	addLine( maxPulse0Str, maxPulse0DeltaStr + " ", " maximum pulse ", maxPulse1Str, " " + maxPulse1DeltaStr );
-	addLine( meanPulse0Str, meanPulse0DeltaStr + " ", " average pulse ", meanPulse1Str, " " + meanPulse1DeltaStr );
+	addLine( minPulse0Str, minPulse0DeltaStr + " ", "  minimum pulse ", minPulse1Str, " " + minPulse1DeltaStr );
+	addLine( maxPulse0Str, maxPulse0DeltaStr + " ", "  maximum pulse ", maxPulse1Str, " " + maxPulse1DeltaStr );
+	addLine( meanPulse0Str, meanPulse0DeltaStr + " ", "  average pulse ", meanPulse1Str, " " + meanPulse1DeltaStr );
 
 	string minHarmonyStr, maxHarmonyStr, meanHarmonyStr;
 	string minHarmony0DeltaStr, maxHarmony0DeltaStr;
@@ -434,33 +434,33 @@ void HeartRateApp::renderStatistics()
 
 	if ( mHarmonies.empty() )
 	{
-		minHarmonyStr = "--";
-		maxHarmonyStr = "--";
-		meanHarmonyStr = "--";
-		minHarmony0DeltaStr = "--";
-		maxHarmony0DeltaStr = "--";
-		minHarmony1DeltaStr = "--";
-		maxHarmony1DeltaStr = "--";
-		meanHarmonyDeltaStr = "--";
+		minHarmonyStr = " -- ";
+		maxHarmonyStr = " -- ";
+		meanHarmonyStr = " -- ";
+		minHarmony0DeltaStr = " -- ";
+		maxHarmony0DeltaStr = " -- ";
+		minHarmony1DeltaStr = " -- ";
+		maxHarmony1DeltaStr = " -- ";
+		meanHarmonyDeltaStr = " -- ";
 	}
 	else
 	{
 		int initialHarmony = mHarmonies[ 0 ];
 		auto bounds = std::minmax_element( mHarmonies.begin(), mHarmonies.end() );
-		minHarmonyStr = toString( *bounds.first ) + "%";
-		minHarmony0DeltaStr = ( boost::format( "%+d" ) % mMinHarmony0 ).str();
-		minHarmony1DeltaStr = ( boost::format( "%+d" ) % mMinHarmony1 ).str();
-		maxHarmonyStr = toString( *bounds.second ) + "%";
-		maxHarmony0DeltaStr = ( boost::format( "%+d" ) % mMaxHarmony0 ).str();
-		maxHarmony1DeltaStr = ( boost::format( "%+d" ) % mMaxHarmony1 ).str();
+		minHarmonyStr = ( boost::format( "%3d%%" ) % ( *bounds.first ) ).str();
+		minHarmony0DeltaStr = ( boost::format( "%+4d" ) % mMinHarmony0 ).str();
+		minHarmony1DeltaStr = ( boost::format( "%+4d" ) % mMinHarmony1 ).str();
+		maxHarmonyStr = ( boost::format( "%3d%%" ) % ( *bounds.second ) ).str();
+		maxHarmony0DeltaStr = ( boost::format( "%+4d" ) % mMaxHarmony0 ).str();
+		maxHarmony1DeltaStr = ( boost::format( "%+4d" ) % mMaxHarmony1 ).str();
 		meanHarmony = std::accumulate( mHarmonies.begin(), mHarmonies.end(), 0L ) / mHarmonies.size();
-		meanHarmonyStr = toString( meanHarmony ) + "%";
-		meanHarmonyDeltaStr = ( boost::format( "%+d" ) % ( meanHarmony - initialHarmony ) ).str();
+		meanHarmonyStr = ( boost::format( "%3d%%" ) % ( meanHarmony ) ).str();
+		meanHarmonyDeltaStr = ( boost::format( "%+4d" ) % ( meanHarmony - initialHarmony ) ).str();
 	}
 
-	addLine( minHarmonyStr, minHarmony0DeltaStr + " ", " minimum harmony ", minHarmonyStr, " " + minHarmony1DeltaStr );
-	addLine( maxHarmonyStr, maxHarmony0DeltaStr + " ", " maximum harmony ", maxHarmonyStr, " " + maxHarmony1DeltaStr );
-	addLine( meanHarmonyStr, meanHarmonyDeltaStr + " ", " average harmony ", meanHarmonyStr, " " + meanHarmonyDeltaStr );
+	addLine( minHarmonyStr, minHarmony0DeltaStr + " ", " minimum harmony", minHarmonyStr, " " + minHarmony1DeltaStr );
+	addLine( maxHarmonyStr, maxHarmony0DeltaStr + " ", " maximum harmony", maxHarmonyStr, " " + maxHarmony1DeltaStr );
+	addLine( meanHarmonyStr, meanHarmonyDeltaStr + " ", " average harmony", meanHarmonyStr, " " + meanHarmonyDeltaStr );
 
 	Surface8u statisticFigures = layout.render( true );
 
