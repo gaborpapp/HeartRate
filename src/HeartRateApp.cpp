@@ -31,6 +31,7 @@
 #include "cinder/Cinder.h"
 #include "cinder/Font.h"
 #include "cinder/ImageIo.h"
+#include "cinder/Rand.h"
 #include "cinder/Text.h"
 #include "cinder/Timeline.h"
 
@@ -69,6 +70,7 @@ class HeartRateApp : public AppBasic
 		static const int FBO_WIDTH;
 		static const int FBO_HEIGHT;
 		gl::Fbo mFbo;
+		gl::Fbo mStatisticsFbo;
 
 		HeartBloom mHeartBloom;
 		int mBloomIterations;
@@ -198,6 +200,7 @@ void HeartRateApp::setup()
 	gl::Fbo::Format format;
 	format.setSamples( 4 );
 	mFbo = gl::Fbo( FBO_WIDTH, FBO_HEIGHT, format );
+	mStatisticsFbo = gl::Fbo( FBO_WIDTH, FBO_HEIGHT, format );
 	mHeartBloom = HeartBloom( FBO_WIDTH, FBO_HEIGHT );
 
 	// set up the camera
@@ -356,12 +359,12 @@ void HeartRateApp::renderStatistics()
 	{
 		auto bounds0 = std::minmax_element( mPulses0.begin(), mPulses0.end() );
 		minPulse0Str = toString( *bounds0.first );
-		minPulse0DeltaStr = ( boost::format( "%+d" ) % ( *bounds0.first - mInitialPulse0 ) ).str() + " ";
+		minPulse0DeltaStr = ( boost::format( "%+d" ) % ( *bounds0.first - mInitialPulse0 ) ).str();
 		maxPulse0Str = toString( *bounds0.second );
-		maxPulse0DeltaStr = ( boost::format( "%+d" ) % ( *bounds0.second - mInitialPulse0 ) ).str() + " ";
+		maxPulse0DeltaStr = ( boost::format( "%+d" ) % ( *bounds0.second - mInitialPulse0 ) ).str();
 		long meanPulse0 = std::accumulate( mPulses0.begin(), mPulses0.end(), 0L ) / mPulses0.size();
 		meanPulse0Str = toString( meanPulse0 );
-		meanPulse0DeltaStr = ( boost::format( "%+d" ) % ( meanPulse0 - mInitialPulse0 ) ).str() + " ";
+		meanPulse0DeltaStr = ( boost::format( "%+d" ) % ( meanPulse0 - mInitialPulse0 ) ).str();
 	}
 
 	if ( mPulses1.empty() )
@@ -377,12 +380,12 @@ void HeartRateApp::renderStatistics()
 	{
 		auto bounds1 = std::minmax_element( mPulses1.begin(), mPulses1.end() );
 		minPulse1Str = toString( *bounds1.first );
-		minPulse1DeltaStr = " " + ( boost::format( "%+d" ) % ( *bounds1.first - mInitialPulse1 ) ).str();
+		minPulse1DeltaStr = ( boost::format( "%+d" ) % ( *bounds1.first - mInitialPulse1 ) ).str();
 		maxPulse1Str = toString( *bounds1.second );
-		maxPulse1DeltaStr = " " + ( boost::format( "%+d" ) % ( *bounds1.second - mInitialPulse1 ) ).str();
+		maxPulse1DeltaStr = ( boost::format( "%+d" ) % ( *bounds1.second - mInitialPulse1 ) ).str();
 		long meanPulse1 = std::accumulate( mPulses1.begin(), mPulses1.end(), 0L ) / mPulses1.size();
 		meanPulse1Str = toString( meanPulse1 );
-		meanPulse1DeltaStr = " " + ( boost::format( "%+d" ) % ( meanPulse1 - mInitialPulse1 ) ).str();
+		meanPulse1DeltaStr = ( boost::format( "%+d" ) % ( meanPulse1 - mInitialPulse1 ) ).str();
 	}
 
 	TextLayout layout;
@@ -408,12 +411,13 @@ void HeartRateApp::renderStatistics()
 		layout.append( s2delta );
 	};
 
-	addLine( minPulse0Str, minPulse0DeltaStr, " minimum pulse ", minPulse1Str, minPulse1DeltaStr );
-	addLine( maxPulse0Str, maxPulse0DeltaStr, " maximum pulse ", maxPulse1Str, maxPulse1DeltaStr );
-	addLine( meanPulse0Str, meanPulse0DeltaStr, " mean pulse ", meanPulse1Str, meanPulse1DeltaStr );
+	addLine( minPulse0Str, minPulse0DeltaStr + " ", " minimum pulse ", minPulse1Str, " " + minPulse1DeltaStr );
+	addLine( maxPulse0Str, maxPulse0DeltaStr + " ", " maximum pulse ", maxPulse1Str, " " + maxPulse1DeltaStr );
+	addLine( meanPulse0Str, meanPulse0DeltaStr + " ", " mean pulse ", meanPulse1Str, " " + meanPulse1DeltaStr );
 
 	string minHarmonyStr, maxHarmonyStr, meanHarmonyStr;
 	string minHarmonyDeltaStr, maxHarmonyDeltaStr, meanHarmonyDeltaStr;
+	long meanHarmony = -1;
 
 	if ( mHarmonies.empty() )
 	{
@@ -432,7 +436,7 @@ void HeartRateApp::renderStatistics()
 		minHarmonyDeltaStr = ( boost::format( "%+d" ) % ( *bounds.first - initialHarmony ) ).str();
 		maxHarmonyStr = toString( *bounds.second );
 		maxHarmonyDeltaStr = ( boost::format( "%+d" ) % ( *bounds.second - initialHarmony ) ).str();
-		long meanHarmony = std::accumulate( mHarmonies.begin(), mHarmonies.end(), 0L ) / mHarmonies.size();
+		meanHarmony = std::accumulate( mHarmonies.begin(), mHarmonies.end(), 0L ) / mHarmonies.size();
 		meanHarmonyStr = toString( meanHarmony );
 		meanHarmonyDeltaStr = ( boost::format( "%+d" ) % ( meanHarmony - initialHarmony ) ).str();
 	}
@@ -441,8 +445,45 @@ void HeartRateApp::renderStatistics()
 	addLine( maxHarmonyStr, maxHarmonyDeltaStr + " ", " maximum harmony ", maxHarmonyStr, " " + maxHarmonyDeltaStr );
 	addLine( meanHarmonyStr, meanHarmonyDeltaStr + " ", " mean harmony ", meanHarmonyStr, " " + meanHarmonyDeltaStr );
 
-	Surface8u rendered = layout.render( true );
-	mStatisticsTxt = gl::Texture( rendered );
+	Surface8u statisticFigures = layout.render( true );
+
+	gl::SaveFramebufferBinding bindingSaver;
+	glPushAttrib( GL_VIEWPORT_BIT );
+	gl::pushMatrices();
+
+	mStatisticsFbo.bindFramebuffer();
+
+	gl::setViewport( mStatisticsFbo.getBounds() );
+	gl::setMatricesWindow( mStatisticsFbo.getSize(), false );
+	gl::clear( ColorA::gray( 0.f, 0.8f ) );
+
+	gl::draw( gl::Texture( statisticFigures ),
+			  Vec2f( 0, ( mFbo.getHeight() - statisticFigures.getHeight() ) / 2 ) );
+
+	if ( meanHarmony != -1 )
+	{
+		float a0 = Rand::randFloat( 0.5f, 1.f );
+		float a1 = a0 / ( meanHarmony * .01f );
+		mHeart.setAmplitudes( a1, a0 );
+		mHeart.update( mCamera );
+
+		Rectf heartRect = Rectf( mStatisticsFbo.getBounds() ).scaled( Vec2f( 0.5f, 1.f ) ) +
+							Vec2f( mStatisticsFbo.getWidth() / 2, 0.f );
+		gl::setViewport( Area( heartRect ) );
+		CameraPersp cam( mCamera );
+		cam.setAspectRatio( heartRect.getAspectRatio() );
+		cam.lookAt( Vec3f( 0.f, -60.f, -400.f ), Vec3f( 0.0f, -60.f, 0.0f ) );
+		gl::setMatrices( cam );
+		gl::multModelView( Matrix44f::createRotation( Vec3f( 0, M_PI, M_PI ) ) );
+
+		mHeart.draw();
+	}
+
+	gl::popMatrices();
+	glPopAttrib();
+	mStatisticsFbo.unbindFramebuffer();
+
+	mStatisticsTxt = mStatisticsFbo.getTexture();
 }
 
 void HeartRateApp::update()
@@ -812,10 +853,9 @@ void HeartRateApp::draw()
 			mFade = 0.f;
 			timeline().apply( &mFade, 1.f, 1.f );
 		}
-		Rectf outputRect = Rectf( mStatisticsTxt.getBounds() ).getCenteredFit( getWindowBounds(), false );
 		gl::enableAlphaBlending();
 		gl::color( ColorA::gray( 1.f, mFade ) );
-		gl::draw( mStatisticsTxt, outputRect );
+		gl::draw( mStatisticsTxt, getWindowBounds() );
 		gl::disableAlphaBlending();
 	}
 
