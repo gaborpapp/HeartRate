@@ -503,6 +503,7 @@ void HeartRateApp::renderStatistics()
 		// draw left
 		TextBox diagramLeft;
 		diagramLeft.font( mFontSmall ).alignment( TextBox::CENTER ).color( Color( 0, 0, 1 ) ).size( 100, TextBox::GROW );
+		diagramLeft.backgroundColor( ColorA::gray( 0.f, 0.8f ) );
 		diagramLeft.setText( "left" );
 		Vec2f diagramLeftPos = diagramRect.getUpperLeft() + Vec2f( diagramRect.getWidth() / 4 - diagramLeft.measure().x / 2, -mFontSmall.getSize() * 1.5 );
 		gl::draw( diagramLeft.render(), diagramLeftPos );
@@ -526,6 +527,7 @@ void HeartRateApp::renderStatistics()
 		// draw right
 		TextBox diagramRight;
 		diagramRight.font( mFontSmall ).alignment( TextBox::CENTER ).color( Color( 1, 0, 0 ) ).size( 100, TextBox::GROW );
+		diagramRight.backgroundColor( ColorA::gray( 0.f, 0.8f ) );
 		diagramRight.setText( "right" );
 		Vec2f diagramRightPos = diagramRect.getUpperRight() + Vec2f( -diagramRect.getWidth() / 4 - diagramRight.measure().x / 2, -mFontSmall.getSize() * 1.5 );
 		gl::draw( diagramRight.render(), diagramRightPos );
