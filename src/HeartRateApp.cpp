@@ -499,6 +499,13 @@ void HeartRateApp::renderStatistics()
 		gl::end();
 		gl::color( Color::white() );
 		glLineWidth( 1.f );
+
+		// draw left
+		TextBox diagramLeft;
+		diagramLeft.font( mFontSmall ).alignment( TextBox::CENTER ).color( Color( 0, 0, 1 ) ).size( 0, TextBox::GROW );
+		diagramLeft.setText( "left" );
+		Vec2f diagramLeftPos = diagramRect.getUpperLeft() + Vec2f( diagramRect.getWidth() / 4 - diagramLeft.measure().x / 2, -mFontSmall.getSize() * 1.5 );
+		gl::draw( diagramLeft.render(), diagramLeftPos );
 	}
 
 	if ( mPulses1.size() > 1 )
@@ -515,12 +522,34 @@ void HeartRateApp::renderStatistics()
 		gl::end();
 		gl::color( Color::white() );
 		glLineWidth( 1.f );
+
+		// draw right
+		TextBox diagramRight;
+		diagramRight.font( mFontSmall ).alignment( TextBox::CENTER ).color( Color( 1, 0, 0 ) ).size( 0, TextBox::GROW );
+		diagramRight.setText( "right" );
+		Vec2f diagramRightPos = diagramRect.getUpperRight() + Vec2f( -diagramRect.getWidth() / 4 - diagramRight.measure().x / 2, -mFontSmall.getSize() * 1.5 );
+		gl::draw( diagramRight.render(), diagramRightPos );
 	}
 
 	if ( ( mPulses0.size() > 1 ) || ( mPulses1.size() > 1 ) )
 	{
 		gl::color( Color::white() );
 		gl::drawStrokedRect( diagramRect );
+
+		// draw time
+		Vec2f diagramTimePos;
+		float diagramTimePosStep = diagramRect.getWidth() / 5;
+		for( int i = 0; i <= 5; ++i )
+		{
+			TextBox diagramTime;
+
+			diagramTime.font( mFontSmaller ).alignment( TextBox::LEFT ).color( mTextColor1 ).size( 150, TextBox::GROW );
+			diagramTime.setText( toString( i ) + ":00" );
+			if( i == 0 )
+				diagramTimePos = diagramRect.getLowerLeft() + Vec2f( -diagramTime.measure().x / 2, mFontSmaller.getSize() );
+			gl::draw( diagramTime.render(), diagramTimePos );
+			diagramTimePos.x += diagramTimePosStep;
+		}
 	}
 
 	// harmony heart
