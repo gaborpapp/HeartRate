@@ -305,11 +305,6 @@ void HeartRateApp::updateStatistics()
 	static int lastHarmony = -1;
 	static int lastHarmonyStableFrames = 0;
 
-	if ( ( getElapsedSeconds() - mGameStartTime ) < mHarmonyIgnoreDuration )
-	{
-		mHarmony = -1;
-	}
-	else
 	if ( ( mAmplitude0 == 0.f ) || ( mAmplitude1 == 0.f ) )
 	{
 		mHarmony = -1;
@@ -324,7 +319,10 @@ void HeartRateApp::updateStatistics()
 			if ( lastHarmonyStableFrames >= 2 )
 			{
 				mHarmony = harmony;
-				mHarmonies.push_back( mHarmony );
+				if ( ( getElapsedSeconds() - mGameStartTime ) >= mHarmonyIgnoreDuration )
+				{
+					mHarmonies.push_back( mHarmony );
+				}
 			}
 		}
 		else
@@ -342,87 +340,106 @@ void HeartRateApp::renderStatistics()
 {
 	string minPulse0Str, maxPulse0Str, meanPulse0Str;
 	string minPulse1Str, maxPulse1Str, meanPulse1Str;
+	string minPulse0DeltaStr, maxPulse0DeltaStr, meanPulse0DeltaStr;
+	string minPulse1DeltaStr, maxPulse1DeltaStr, meanPulse1DeltaStr;
 
 	if ( mPulses0.empty() )
 	{
 		minPulse0Str = "--";
 		maxPulse0Str = "--";
 		meanPulse0Str = "--";
+		minPulse0DeltaStr = "--";
+		maxPulse0DeltaStr = "--";
+		meanPulse0DeltaStr = "--";
 	}
 	else
 	{
 		auto bounds0 = std::minmax_element( mPulses0.begin(), mPulses0.end() );
 		minPulse0Str = toString( *bounds0.first );
+		minPulse0DeltaStr = ( boost::format( "%+d" ) % ( *bounds0.first - mInitialPulse0 ) ).str() + " ";
 		maxPulse0Str = toString( *bounds0.second );
+		maxPulse0DeltaStr = ( boost::format( "%+d" ) % ( *bounds0.second - mInitialPulse0 ) ).str() + " ";
 		long meanPulse0 = std::accumulate( mPulses0.begin(), mPulses0.end(), 0L ) / mPulses0.size();
 		meanPulse0Str = toString( meanPulse0 );
+		meanPulse0DeltaStr = ( boost::format( "%+d" ) % ( meanPulse0 - mInitialPulse0 ) ).str() + " ";
 	}
+
 	if ( mPulses1.empty() )
 	{
 		minPulse1Str = "--";
 		maxPulse1Str = "--";
 		meanPulse1Str = "--";
+		minPulse1DeltaStr = "--";
+		maxPulse1DeltaStr = "--";
+		meanPulse1DeltaStr = "--";
 	}
 	else
 	{
 		auto bounds1 = std::minmax_element( mPulses1.begin(), mPulses1.end() );
 		minPulse1Str = toString( *bounds1.first );
+		minPulse1DeltaStr = " " + ( boost::format( "%+d" ) % ( *bounds1.first - mInitialPulse1 ) ).str();
 		maxPulse1Str = toString( *bounds1.second );
+		maxPulse1DeltaStr = " " + ( boost::format( "%+d" ) % ( *bounds1.second - mInitialPulse1 ) ).str();
 		long meanPulse1 = std::accumulate( mPulses1.begin(), mPulses1.end(), 0L ) / mPulses1.size();
 		meanPulse1Str = toString( meanPulse1 );
+		meanPulse1DeltaStr = " " + ( boost::format( "%+d" ) % ( meanPulse1 - mInitialPulse1 ) ).str();
 	}
 
 	TextLayout layout;
 	layout.clear( ColorA::gray( 0.f, 0.8f ) );
 	layout.setBorder( 50, 50 );
 
-	auto addLine = [ & ]( string s0, string s1, string s2 )
+	auto addLine = [ & ]( string s0, string s0delta, string s1, string s2, string s2delta )
 	{
+		layout.setFont( mFontSmall );
+		layout.setColor( mTextColor1 );
+		layout.addCenteredLine( s0delta );
 		layout.setFont( mFontMiddle );
 		layout.setColor( mTextColor0 );
-		layout.addCenteredLine( s0 );
+		layout.append( s0 );
 		layout.setFont( mFontSmall );
 		layout.setColor( mTextColor1 );
 		layout.append( s1 );
 		layout.setFont( mFontMiddle );
 		layout.setColor( mTextColor0 );
 		layout.append( s2 );
+		layout.setFont( mFontSmall );
+		layout.setColor( mTextColor1 );
+		layout.append( s2delta );
 	};
 
-	addLine( minPulse0Str, " minimum pulse ", minPulse1Str );
-	addLine( maxPulse0Str, " maximum pulse ", maxPulse1Str );
-	addLine( meanPulse0Str, " mean pulse ", meanPulse1Str );
+	addLine( minPulse0Str, minPulse0DeltaStr, " minimum pulse ", minPulse1Str, minPulse1DeltaStr );
+	addLine( maxPulse0Str, maxPulse0DeltaStr, " maximum pulse ", maxPulse1Str, maxPulse1DeltaStr );
+	addLine( meanPulse0Str, meanPulse0DeltaStr, " mean pulse ", meanPulse1Str, meanPulse1DeltaStr );
 
 	string minHarmonyStr, maxHarmonyStr, meanHarmonyStr;
+	string minHarmonyDeltaStr, maxHarmonyDeltaStr, meanHarmonyDeltaStr;
 
 	if ( mHarmonies.empty() )
 	{
 		minHarmonyStr = "--";
 		maxHarmonyStr = "--";
 		meanHarmonyStr = "--";
+		minHarmonyDeltaStr = "--";
+		maxHarmonyDeltaStr = "--";
+		meanHarmonyDeltaStr = "--";
 	}
 	else
 	{
+		int initialHarmony = mHarmonies[ 0 ];
 		auto bounds = std::minmax_element( mHarmonies.begin(), mHarmonies.end() );
 		minHarmonyStr = toString( *bounds.first );
+		minHarmonyDeltaStr = ( boost::format( "%+d" ) % ( *bounds.first - initialHarmony ) ).str();
 		maxHarmonyStr = toString( *bounds.second );
+		maxHarmonyDeltaStr = ( boost::format( "%+d" ) % ( *bounds.second - initialHarmony ) ).str();
 		long meanHarmony = std::accumulate( mHarmonies.begin(), mHarmonies.end(), 0L ) / mHarmonies.size();
 		meanHarmonyStr = toString( meanHarmony );
+		meanHarmonyDeltaStr = ( boost::format( "%+d" ) % ( meanHarmony - initialHarmony ) ).str();
 	}
-#if 0
-	auto addLine2 = [ & ]( string s0, string s1 )
-	{
-		layout.setFont( mFontSmall );
-		layout.setColor( mTextColor1 );
-		layout.addCenteredLine( s0 );
-		layout.setFont( mFontMiddle );
-		layout.setColor( mTextColor0 );
-		layout.append( s1 );
-	};
-#endif
-	addLine( minHarmonyStr, " minimum harmony ", minHarmonyStr );
-	addLine( maxHarmonyStr, " maximum harmony ", maxHarmonyStr );
-	addLine( meanHarmonyStr, " mean harmony ", meanHarmonyStr );
+
+	addLine( minHarmonyStr, minHarmonyDeltaStr + " ", " minimum harmony ", minHarmonyStr, " " + minHarmonyDeltaStr );
+	addLine( maxHarmonyStr, maxHarmonyDeltaStr + " ", " maximum harmony ", maxHarmonyStr, " " + maxHarmonyDeltaStr );
+	addLine( meanHarmonyStr, meanHarmonyDeltaStr + " ", " mean harmony ", meanHarmonyStr, " " + meanHarmonyDeltaStr );
 
 	Surface8u rendered = layout.render( true );
 	mStatisticsTxt = gl::Texture( rendered );

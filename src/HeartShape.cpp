@@ -88,8 +88,8 @@ void HeartShape::update( const Camera &camera )
 	{
 		float b0 = mAmplitude0 * gauss( .7f, .25f, x );
 		float b1 = mAmplitude1 * gauss( .7f, .75f, x );
-		xDisp[ t ] = mDisplaceScale * lerp( b0, b1, smoothstep( .2f, .8f, x ) );
-		yDisp[ t ] = math< float >::sin( M_PI * x );
+		xDisp[ t ] = lerp( b0, b1, smoothstep( .2f, .8f, x ) );
+		yDisp[ t ] = mDisplaceScale * math< float >::sin( M_PI * x );
 	}
 	Channel32f xDispChn = Channel32f( DISP_SIZE, 1, DISP_SIZE, 1, xDisp );
 	if ( mDisplaceTexture )
