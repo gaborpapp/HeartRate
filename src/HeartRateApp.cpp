@@ -475,6 +475,7 @@ void HeartRateApp::renderStatistics()
 	{
 		RectMapping mapping( Rectf( 0, minPulse - 50, mPulses0.size() - 1, maxPulse + 50 ),
 				diagramRect );
+		glLineWidth( 2.f );
 		gl::begin( GL_LINE_STRIP );
 		gl::color( Color( 0, 0, 1 ) );
 		for ( size_t i = 0; i < mPulses0.size(); i++ )
@@ -483,12 +484,14 @@ void HeartRateApp::renderStatistics()
 		}
 		gl::end();
 		gl::color( Color::white() );
+		glLineWidth( 1.f );
 	}
 
 	if ( mPulses1.size() > 1 )
 	{
 		RectMapping mapping( Rectf( 0, minPulse - 50, mPulses1.size() - 1, maxPulse + 50 ),
 				diagramRect );
+		glLineWidth( 2.f );
 		gl::begin( GL_LINE_STRIP );
 		gl::color( Color( 1, 0, 0 ) );
 		for ( size_t i = 0; i < mPulses1.size(); i++ )
@@ -497,6 +500,7 @@ void HeartRateApp::renderStatistics()
 		}
 		gl::end();
 		gl::color( Color::white() );
+		glLineWidth( 1.f );
 	}
 
 	if ( ( mPulses0.size() > 1 ) || ( mPulses1.size() > 1 ) )
