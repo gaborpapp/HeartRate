@@ -345,6 +345,7 @@ void HeartRateApp::renderStatistics()
 	string minPulse1Str, maxPulse1Str, meanPulse1Str;
 	string minPulse0DeltaStr, maxPulse0DeltaStr, meanPulse0DeltaStr;
 	string minPulse1DeltaStr, maxPulse1DeltaStr, meanPulse1DeltaStr;
+	int minPulse, maxPulse;
 
 	if ( mPulses0.empty() )
 	{
@@ -358,8 +359,10 @@ void HeartRateApp::renderStatistics()
 	else
 	{
 		auto bounds0 = std::minmax_element( mPulses0.begin(), mPulses0.end() );
+		minPulse = *bounds0.first;
 		minPulse0Str = toString( *bounds0.first );
 		minPulse0DeltaStr = ( boost::format( "%+d" ) % ( *bounds0.first - mInitialPulse0 ) ).str();
+		maxPulse = *bounds0.second;
 		maxPulse0Str = toString( *bounds0.second );
 		maxPulse0DeltaStr = ( boost::format( "%+d" ) % ( *bounds0.second - mInitialPulse0 ) ).str();
 		long meanPulse0 = std::accumulate( mPulses0.begin(), mPulses0.end(), 0L ) / mPulses0.size();
@@ -379,8 +382,10 @@ void HeartRateApp::renderStatistics()
 	else
 	{
 		auto bounds1 = std::minmax_element( mPulses1.begin(), mPulses1.end() );
+		minPulse = math< int >::min( minPulse, *bounds1.first );
 		minPulse1Str = toString( *bounds1.first );
 		minPulse1DeltaStr = ( boost::format( "%+d" ) % ( *bounds1.first - mInitialPulse1 ) ).str();
+		maxPulse = math< int >::max( maxPulse, *bounds1.second );
 		maxPulse1Str = toString( *bounds1.second );
 		maxPulse1DeltaStr = ( boost::format( "%+d" ) % ( *bounds1.second - mInitialPulse1 ) ).str();
 		long meanPulse1 = std::accumulate( mPulses1.begin(), mPulses1.end(), 0L ) / mPulses1.size();
@@ -457,9 +462,50 @@ void HeartRateApp::renderStatistics()
 	gl::setMatricesWindow( mStatisticsFbo.getSize(), false );
 	gl::clear( ColorA::gray( 0.f, 0.8f ) );
 
+	// numbers
 	gl::draw( gl::Texture( statisticFigures ),
 			  Vec2f( 0, ( mFbo.getHeight() - statisticFigures.getHeight() ) / 2 ) );
 
+	// pulse diagram
+	Rectf diagramRect = Rectf( mStatisticsFbo.getBounds() ).scaled( .5f ) +
+								Vec2f( mStatisticsFbo.getWidth() / 2, 0.f );
+	diagramRect.scaleCentered( .7f );
+
+	if ( mPulses0.size() > 1 )
+	{
+		RectMapping mapping( Rectf( 0, minPulse - 50, mPulses0.size() - 1, maxPulse + 50 ),
+				diagramRect );
+		gl::begin( GL_LINE_STRIP );
+		gl::color( Color( 0, 0, 1 ) );
+		for ( size_t i = 0; i < mPulses0.size(); i++ )
+		{
+			gl::vertex( mapping.map( Vec2f( i, mPulses0[ i ] ) ) );
+		}
+		gl::end();
+		gl::color( Color::white() );
+	}
+
+	if ( mPulses1.size() > 1 )
+	{
+		RectMapping mapping( Rectf( 0, minPulse - 50, mPulses1.size() - 1, maxPulse + 50 ),
+				diagramRect );
+		gl::begin( GL_LINE_STRIP );
+		gl::color( Color( 1, 0, 0 ) );
+		for ( size_t i = 0; i < mPulses1.size(); i++ )
+		{
+			gl::vertex( mapping.map( Vec2f( i, mPulses1[ i ] ) ) );
+		}
+		gl::end();
+		gl::color( Color::white() );
+	}
+
+	if ( ( mPulses0.size() > 1 ) || ( mPulses1.size() > 1 ) )
+	{
+		gl::color( Color::white() );
+		gl::drawStrokedRect( diagramRect );
+	}
+
+	// harmony heart
 	if ( meanHarmony != -1 )
 	{
 		float a0 = Rand::randFloat( 0.5f, 1.f );
