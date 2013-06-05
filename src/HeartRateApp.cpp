@@ -196,7 +196,7 @@ void HeartRateApp::setup()
 	mParams.addSeparator();
 	mParams.addPersistentParam( "Countdown duration", &mCountdownDuration, 5 * 60, "min=10" );
 	mParams.addPersistentParam( "Harmony ignore duration", &mHarmonyIgnoreDuration, 30, "min=0" );
-	mParams.addPersistentParam( "Harmony stabilizer", &mHarmonyStabilizer, 2, "min=0" );
+	mParams.addPersistentParam( "Harmony stabilizer", &mHarmonyStabilizer, 20, "min=0" );
 
 	mHeart.setup();
 
@@ -403,7 +403,7 @@ void HeartRateApp::renderStatistics()
 
 	TextLayout layout;
 	layout.clear( ColorA::gray( 0.f, 0.8f ) );
-	layout.setBorder( 50, 50 );
+	layout.setBorder( 10, 10 );
 
 	auto addLine = [ & ]( string s0, string s0delta, string s1, string s2, string s2delta )
 	{
@@ -502,7 +502,7 @@ void HeartRateApp::renderStatistics()
 
 		// draw left
 		TextBox diagramLeft;
-		diagramLeft.font( mFontSmall ).alignment( TextBox::CENTER ).color( Color( 0, 0, 1 ) ).size( 0, TextBox::GROW );
+		diagramLeft.font( mFontSmall ).alignment( TextBox::CENTER ).color( Color( 0, 0, 1 ) ).size( 100, TextBox::GROW );
 		diagramLeft.setText( "left" );
 		Vec2f diagramLeftPos = diagramRect.getUpperLeft() + Vec2f( diagramRect.getWidth() / 4 - diagramLeft.measure().x / 2, -mFontSmall.getSize() * 1.5 );
 		gl::draw( diagramLeft.render(), diagramLeftPos );
@@ -525,7 +525,7 @@ void HeartRateApp::renderStatistics()
 
 		// draw right
 		TextBox diagramRight;
-		diagramRight.font( mFontSmall ).alignment( TextBox::CENTER ).color( Color( 1, 0, 0 ) ).size( 0, TextBox::GROW );
+		diagramRight.font( mFontSmall ).alignment( TextBox::CENTER ).color( Color( 1, 0, 0 ) ).size( 100, TextBox::GROW );
 		diagramRight.setText( "right" );
 		Vec2f diagramRightPos = diagramRect.getUpperRight() + Vec2f( -diagramRect.getWidth() / 4 - diagramRight.measure().x / 2, -mFontSmall.getSize() * 1.5 );
 		gl::draw( diagramRight.render(), diagramRightPos );
@@ -544,6 +544,7 @@ void HeartRateApp::renderStatistics()
 			TextBox diagramTime;
 
 			diagramTime.font( mFontSmaller ).alignment( TextBox::LEFT ).color( mTextColor1 ).size( 150, TextBox::GROW );
+			diagramTime.backgroundColor( ColorA::gray( 0.f, 0.8f ) );
 			diagramTime.setText( toString( i ) + ":00" );
 			if( i == 0 )
 				diagramTimePos = diagramRect.getLowerLeft() + Vec2f( -diagramTime.measure().x / 2, mFontSmaller.getSize() );
