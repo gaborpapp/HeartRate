@@ -195,7 +195,9 @@ void HeartRateApp::setup()
 	mHeart.setup();
 
 	// heart fbo
-	mFbo = gl::Fbo( FBO_WIDTH, FBO_HEIGHT );
+	gl::Fbo::Format format;
+	format.setSamples( 4 );
+	mFbo = gl::Fbo( FBO_WIDTH, FBO_HEIGHT, format );
 	mHeartBloom = HeartBloom( FBO_WIDTH, FBO_HEIGHT );
 
 	// set up the camera
@@ -627,7 +629,7 @@ void HeartRateApp::drawInfo()
 	pulseDeltaBox.font( mFontSmall ).alignment( TextBox::CENTER ).color( mTextColor1 ).size( 150, TextBox::GROW );
 	pulseDeltaBox.setText( pulse0DeltaStr );
 	gl::draw( pulseDeltaBox.render(), pulse0DeltaPos - pulseDeltaBox.getSize() * .5f );
-	arrowBox.font( mFontSmaller ).alignment( TextBox::CENTER ).size( 50, TextBox::GROW );
+	arrowBox.font( mFontSmall ).alignment( TextBox::CENTER ).size( 50, TextBox::GROW );
 	int pulse0ArrowDelta = mPulse0 - mLastPulse0;
 	if ( pulse0ArrowDelta > 0 )
 	{
@@ -644,9 +646,7 @@ void HeartRateApp::drawInfo()
 		arrowBox.setColor( mTextColor1 );
 		arrowBox.setText( " " );
 	}
-	gl::draw( arrowBox.render(), pulse0DeltaPos + Vec2f( .3f * pulseDeltaBox.measure().x, 0.f )
-			+ arrowBox.measure() * Vec2f( 0, .5f ) );
-
+	gl::draw( arrowBox.render(), pulse0DeltaPos + Vec2f( .5f * pulseDeltaBox.measure().x, 0.f ) );
 
 	pulseDeltaBox.setText( pulse1DeltaStr );
 	gl::draw( pulseDeltaBox.render(), pulse1DeltaPos - pulseDeltaBox.getSize() * .5f );
@@ -666,8 +666,7 @@ void HeartRateApp::drawInfo()
 		arrowBox.setColor( mTextColor1 );
 		arrowBox.setText( " " );
 	}
-	gl::draw( arrowBox.render(), pulse1DeltaPos + Vec2f( .3f * pulseDeltaBox.measure().x, 0.f )
-			+ arrowBox.measure() * Vec2f( 0, .5f ) );
+	gl::draw( arrowBox.render(), pulse1DeltaPos + Vec2f( .5f * pulseDeltaBox.measure().x, 0.f ) );
 
 	// harmony
 	Vec2f harmonyPos( winSize * Vec2f( .5f, .95f ) );
