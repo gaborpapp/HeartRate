@@ -132,6 +132,7 @@ class HeartRateApp : public AppBasic
 		Anim< int > mCountdown;
 		int mCountdownDuration;
 		int mHarmonyIgnoreDuration;
+		int mHarmonyStabilizer;
 
 		enum
 		{
@@ -195,6 +196,7 @@ void HeartRateApp::setup()
 	mParams.addSeparator();
 	mParams.addPersistentParam( "Countdown duration", &mCountdownDuration, 5 * 60, "min=10" );
 	mParams.addPersistentParam( "Harmony ignore duration", &mHarmonyIgnoreDuration, 30, "min=0" );
+	mParams.addPersistentParam( "Harmony stabilizer", &mHarmonyStabilizer, 2, "min=0" );
 
 	mHeart.setup();
 
@@ -321,7 +323,7 @@ void HeartRateApp::updateStatistics()
 		if ( lastHarmony == harmony )
 		{
 			lastHarmonyStableFrames++;
-			if ( lastHarmonyStableFrames >= 2 )
+			if ( lastHarmonyStableFrames >= mHarmonyStabilizer )
 			{
 				mHarmony = harmony;
 				if ( ( getElapsedSeconds() - mGameStartTime ) >= mHarmonyIgnoreDuration )
