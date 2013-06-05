@@ -43,6 +43,7 @@ class HeartShape
 
 		ci::ColorA mLightAmbient, mLightDiffuse, mLightSpecular;
 		ci::Vec3f mLightDirection;
+		bool mRecalcNormals;
 
 		ci::ColorA mMaterialAmbient, mMaterialDiffuse, mMaterialSpecular;
 		float mMaterialShininess;

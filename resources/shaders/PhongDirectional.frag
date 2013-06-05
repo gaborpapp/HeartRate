@@ -23,4 +23,5 @@ void main()
 	specular *= pow( max( dot( E, R ), 0. ), gl_FrontMaterial.shininess );
 
 	gl_FragColor = ambient + diffuse + specular;
+	gl_FragColor.a = 1.;
 }

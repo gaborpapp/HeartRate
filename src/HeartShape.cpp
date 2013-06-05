@@ -40,15 +40,17 @@ void HeartShape::setup()
 	mParams.addSeparator();
 
 	mParams.addPersistentParam( "Light direction", &mLightDirection,
-			Vec3f( -0.8, -1.07, -1.1 ).normalized() );
+			Vec3f( 0.416, -0.293, -0.86 ).normalized() );
 	mParams.addPersistentParam( "Light ambient", &mLightAmbient, ColorA::gray( .5f ) );
 	mParams.addPersistentParam( "Light diffuse", &mLightDiffuse, ColorA::gray( .7f ) );
 	mParams.addPersistentParam( "Light specular", &mLightSpecular, ColorA::white() );
 	mParams.addSeparator();
-	mParams.addPersistentParam( "Material ambient", &mMaterialAmbient, ColorA( Color8u( 153, 76, 78 ) ) );
-	mParams.addPersistentParam( "Material diffuse", &mMaterialDiffuse, ColorA( ColorA8u( 254, 0, 7 ) ) );
-	mParams.addPersistentParam( "Material specular", &mMaterialSpecular, ColorA::white() );
+	mParams.addPersistentParam( "Material ambient", &mMaterialAmbient, ColorA( Color8u( 10, 10, 10 ) ) );
+	mParams.addPersistentParam( "Material diffuse", &mMaterialDiffuse, ColorA( Color8u( 126, 2, 2 ) ) );
+	mParams.addPersistentParam( "Material specular", &mMaterialSpecular, ColorA( Color8u( 56, 56, 56 ) ) );
 	mParams.addPersistentParam( "Material shininess", &mMaterialShininess, 20.f, "min=0.1 max=100 step=.1" );
+	mParams.addSeparator();
+	mParams.addPersistentParam( "Recalculate normals", &mRecalcNormals, false );
 
 	// light
     mLight = shared_ptr< gl::Light >( new gl::Light( gl::Light::DIRECTIONAL, 0 ) );
@@ -117,7 +119,8 @@ void HeartShape::update( const Camera &camera )
 	mModelHeartBeating.appendNormals( &origNormals[ 0 ], origNormals.size() );
 	mModelHeartBeating.appendTexCoords( &origTexCoords[ 0 ], origTexCoords.size() );
 	mModelHeartBeating.appendIndices( &mModelHeart.getIndices()[ 0 ], mModelHeart.getNumIndices() );
-	mModelHeartBeating.recalculateNormals();
+	if ( mRecalcNormals )
+		mModelHeartBeating.recalculateNormals();
 }
 
 void HeartShape::draw()
